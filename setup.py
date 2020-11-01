@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="example-pkg-hgromer",
+    name="pymarshall",
     version="0.1.0",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
