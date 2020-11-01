@@ -1,7 +1,7 @@
 import json
 import unittest
 
-import marshall
+from pymarshall import marshall
 from tests.test_classes import *
 
 

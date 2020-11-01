@@ -29,7 +29,7 @@ def unmarshall(cls, data: dict):
     try:
         return __unmarshall(cls, data)
     except Exception as e:
-        raise ValueError(f'Failed to marshall {data} to class {cls.__name__}')
+        raise ValueError(f'Failed to pymarshall {data} to class {cls.__name__}')
 
 
 def marshall(obj, indent=2) -> str:
@@ -48,7 +48,7 @@ def marshall(obj, indent=2) -> str:
 
 
     >>> test_instance = Test('foo', indent=0)
-    >>> data = marshall(test_instance)
+    >>> data = pymarshall(test_instance)
     >>> print(data)
     '{name: foo}'
     """
@@ -108,7 +108,8 @@ def __get_args(cls, unsatisfied_args, data: dict) -> dict:
         elif isinstance(value, (list, tuple, set)):
             current_unsatisfied_args = __get_unsatisfied_args(args, unsatisfied_args)
             for x in value:
-                args.update(__get_args(cls, current_unsatisfied_args, x))
+                if isinstance(x, dict):
+                    args.update(__get_args(cls, current_unsatisfied_args, x))
         elif isinstance(value, dict):
             current_unsatisfied_args = __get_unsatisfied_args(args, unsatisfied_args)
             args.update(__get_args(cls, current_unsatisfied_args, value))
