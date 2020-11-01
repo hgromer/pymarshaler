@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymarshall",
-    version="0.1.4",
+    version="0.2.0",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
     description="Package to pymarshall/unmarshall python objects",

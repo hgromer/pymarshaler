@@ -56,7 +56,7 @@ class TestMarshalling(unittest.TestCase):
         marshalled = marshall.marshall(inner)
         j = json.loads(marshalled)
         j['unused'] = 10
-        result = marshall.unmarshall(Inner, j)
+        result = marshall.unmarshall(Inner, j, True)
         self.assertTrue(result == inner)
 
     def test_default_values(self):
@@ -64,12 +64,14 @@ class TestMarshalling(unittest.TestCase):
         result = marshall.unmarshall(ClassWithDefaults, {})
         self.assertTrue(result == class_with_defaults)
 
+    def test_validate(self):
+        self.assertRaises(ValidateError, lambda: marshall.unmarshall(ClassWithValidate, {}))
+
 
 def _marshall_and_unmarshall(cls, obj):
     marshalled = marshall.marshall(obj)
-    return marshall.unmarshall(cls, json.loads(marshalled))
+    return marshall.unmarshall_str(cls, marshalled)
 
 
 if __name__ == '__main__':
-    print(Inner.__module__)
     unittest.main()

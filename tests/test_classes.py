@@ -59,3 +59,18 @@ class ClassWithUserDefinedDict(EqualityBuiltIn):
 
     def __init__(self, d: Dict[str, Inner]):
         self.d = d
+
+
+class ValidateError(Exception):
+
+    def __init__(self):
+        super()
+
+
+class ClassWithValidate:
+
+    def __init__(self):
+        pass
+
+    def validate(self):
+        raise ValidateError()
