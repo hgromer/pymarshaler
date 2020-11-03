@@ -111,8 +111,44 @@ class TestWithValidate:
 
 
 result = marshall.unmarshall(TestWithValidate, {'name': 'foo'})
->>> 'My name is foo'
+>>> 'My name is foo!'
 ```
 
 This can be used to validate the python object right at construction, potentially raising an error if any of the fields have invalid values
+
+It's also possible to register your own customer unmarshaller for specific user defined classes.
+
+```python
+from pymarshall.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory
+from pymarshall import marshall
+
+
+class ClassWithMessage:
+    
+    def __init__(self, message: str):
+        self.message = message
+
+
+class ClassWithCustomDelegate:
+
+    def __init__(self, message_obj: ClassWithMessage):
+        self.message_obj = message_obj
+
+
+class CustomDelegate(ArgBuilderDelegate):
+
+    def __init__(self, cls):
+        super().__init__(cls)
+
+    def resolve(self, data):
+        return {'message_obj': ClassWithMessage(data['message'])}
+
+
+ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomDelegate)
+result = marshall.unmarshall(ClassWithCustomDelegate, {'message': 'Hello from the custom delegate!'})
+print(result.message_obj)
+>>> 'Hello from the custom delegate!'
+```
+
+The result from any delegate should be a dictionary, however any data inside the returned dictionary should be in their class form. 
 

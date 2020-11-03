@@ -84,7 +84,7 @@ class TestMarshalling(unittest.TestCase):
         result = _marshall_and_unmarshall(NestedList, nested_lists)
         self.assertEqual(nested_lists, result)
 
-    def nested_dict_list(self):
+    def test_nested_dict_list(self):
         nested = NestedDictList(
             {
                 "Test1": {
