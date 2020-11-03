@@ -2,6 +2,7 @@ import json
 import unittest
 
 from pymarshall import marshall
+from pymarshall.arg_delegates import ArgBuilderFactory
 from tests.test_classes import *
 
 
@@ -16,14 +17,14 @@ class TestMarshalling(unittest.TestCase):
     def test_simple_marshalling(self):
         inner = Inner("Inner", 10)
         inner_result = _marshall_and_unmarshall(Inner, inner)
-        self.assertTrue(inner == inner_result)
+        self.assertEqual(inner, inner_result)
 
     def test_nested_marshalling(self):
         inner = Inner("Inner", 10)
         inner_list = [Inner(f'Inner_{i}', i) for i in range(10)]
         outter = Outter(inner, inner_list)
         outter_result = _marshall_and_unmarshall(Outter, outter)
-        self.assertTrue(outter == outter_result)
+        self.assertEqual(outter, outter_result)
 
     def test_multi_nested(self):
         inner = Inner("Inner", 10)
@@ -31,22 +32,28 @@ class TestMarshalling(unittest.TestCase):
         outter = Outter(inner, inner_list)
         multi_nested_outter = MultiNestedOutter(outter)
         result = _marshall_and_unmarshall(MultiNestedOutter, multi_nested_outter)
-        self.assertTrue(result == multi_nested_outter)
+        self.assertEqual(result, multi_nested_outter)
+
+    def test_multi_nested_list(self):
+        nested_list = MultiNestedList(
+            [MultiNestedOutter(
+                Outter(
+                    Inner('Inner', x), [Inner('Inner', 1000)]
+                )
+            ) for x in range(10)]
+        )
+        result = _marshall_and_unmarshall(MultiNestedList, nested_list)
+        self.assertEqual(result, nested_list)
 
     def test_datetime_marshalling(self):
         class_with_date = ClassWithDate(datetime.datetime.now())
         result = _marshall_and_unmarshall(ClassWithDate, class_with_date)
-        self.assertTrue(class_with_date == result)
+        self.assertEqual(class_with_date, result)
 
     def test_dict_marshalling(self):
-        class_with_dict = ClassWithDict({"Test": 1})
+        class_with_dict = ClassWithDict({'Test': Inner('inner', 1)})
         result = _marshall_and_unmarshall(ClassWithDict, class_with_dict)
-        self.assertTrue(result == class_with_dict)
-
-    def test_user_defined_dict_marshalling(self):
-        class_with_user_defined_dict = ClassWithUserDefinedDict({"Test": Inner("Inner", 1)})
-        result = _marshall_and_unmarshall(ClassWithUserDefinedDict, class_with_user_defined_dict)
-        self.assertTrue(result == class_with_user_defined_dict)
+        self.assertEqual(result, class_with_dict)
 
     def test_fails_on_missing(self):
         self.assertRaises(ValueError, lambda: marshall.unmarshall(Inner, {'name': 'Inner'}))
@@ -56,16 +63,21 @@ class TestMarshalling(unittest.TestCase):
         marshalled = marshall.marshall(inner)
         j = json.loads(marshalled)
         j['unused'] = 10
-        result = marshall.unmarshall(Inner, j, True)
-        self.assertTrue(result == inner)
+        result = marshall.unmarshall(Inner, j)
+        self.assertEqual(result, inner)
 
     def test_default_values(self):
         class_with_defaults = ClassWithDefaults()
         result = marshall.unmarshall(ClassWithDefaults, {})
-        self.assertTrue(result == class_with_defaults)
+        self.assertEqual(result, class_with_defaults)
 
     def test_validate(self):
         self.assertRaises(ValidateError, lambda: marshall.unmarshall(ClassWithValidate, {}))
+
+    def test_custom_delegate(self):
+        ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate())
+        result = marshall.unmarshall(ClassWithCustomDelegate, {})
+        self.assertEqual(result, ClassWithCustomDelegate())
 
 
 def _marshall_and_unmarshall(cls, obj):

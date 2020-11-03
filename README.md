@@ -80,7 +80,7 @@ print(result.container)
 
 Pymarshall can also handle containers that store user defined types. The `Set[str]` could easily have been `Set[UserDefinedType]`
 
-Pymarshall also supports default values, and will use any default values supplies in the `__init__` if those values aren't present in the JSON data.
+Pymarshall also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
 
 ```python
 from pymarshall import marshall
@@ -90,10 +90,11 @@ class TestWithDefault:
     def __init__(self, name: str = 'foo'):
         self.name = name
 
-result = marshall.unmarshall(TestWithDefault,{})
+result = marshall.unmarshall(TestWithDefault, {})
 print(result.name)
 >>> 'foo'
 ```
+Pymarshall will raise an error if any non-default attributes aren't given
 
 Pymarshall also supports a validate method on creation of the python object. This method will be called before being returned to the user.
 
@@ -115,23 +116,3 @@ result = marshall.unmarshall(TestWithValidate, {'name': 'foo'})
 
 This can be used to validate the python object right at construction, potentially raising an error if any of the fields have invalid values
 
-Pymarshall will raise an error if any non-default attributes aren't given, it can also ignore unknown fields if you toggle that option.
-
-```python
-from pymarshall import marshall
-
-class Test:
-
-    def __init__(self, name: str, value: int):
-        self.name = name
-        self.value = value
-
-result = marshall.unmarshall(Test, {})
->>> ValueError: Missing required field(s): name, value
-
-result = marshall.unmarshall(Test, {'name': 'foo', 'value': 1, 'random_field': 10})
->>> ValueError: Found unknown field random_field. If you'd like to ignore unknown fields, set ignore_unknown_fields to True
-result = marshall.unmarshall(Test, {'name': 'foo', 'value': 1, 'random_field': 10}, ignore_unknown_fields=True)
-print(result.name, result.value)
->>> 'foo' 1
-```

@@ -1,4 +1,6 @@
-__version__ = '0.2.0'
-__all__ = ['marshall']
+__version__ = '0.2.1'
+__all__ = ['marshall', 'utils', 'arg_delegates']
 
 from pymarshall import marshall
+from pymarshall import utils
+from pymarshall import arg_delegates

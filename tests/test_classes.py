@@ -1,6 +1,8 @@
 import datetime
 from typing import List, Dict
 
+from pymarshall.arg_delegates import ArgBuilderDelegate
+
 
 class EqualityBuiltIn:
 
@@ -26,15 +28,21 @@ class Inner(EqualityBuiltIn):
 
 class Outter(EqualityBuiltIn):
 
-    def __init__(self, inner: Inner, inner_set: List[Inner]):
+    def __init__(self, inner: Inner, inner_list: List[Inner]):
         self.inner = inner
-        self.inner_set = inner_set
+        self.inner_list = inner_list
 
 
 class MultiNestedOutter(EqualityBuiltIn):
 
     def __init__(self, outter: Outter):
         self.outter = outter
+
+
+class MultiNestedList(EqualityBuiltIn):
+
+    def __init__(self, outter_list: List[MultiNestedOutter]):
+        self.outter_list = outter_list
 
 
 class ClassWithDate(EqualityBuiltIn):
@@ -50,12 +58,6 @@ class ClassWithDefaults(EqualityBuiltIn):
 
 
 class ClassWithDict(EqualityBuiltIn):
-
-    def __init__(self, d: dict):
-        self.d = d
-
-
-class ClassWithUserDefinedDict(EqualityBuiltIn):
 
     def __init__(self, d: Dict[str, Inner]):
         self.d = d
@@ -74,3 +76,15 @@ class ClassWithValidate:
 
     def validate(self):
         raise ValidateError()
+
+
+class ClassWithCustomDelegate(EqualityBuiltIn):
+
+    def __init__(self):
+        pass
+
+
+class CustomNoneDelegate(ArgBuilderDelegate):
+
+    def resolve(self, data):
+        return {}
