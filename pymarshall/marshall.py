@@ -9,7 +9,6 @@ from pymarshall.arg_delegates import ArgBuilderFactory
 def unmarshall_str(cls, data: str):
     """
     Reconstruct an instance of type `cls` from a JSON formatted string
-    :param ignore_unknown_fields:
     :param cls: The class type. Must be a user defined type
     :param data: The string JSON data
     :return: An instance of the class `cls`
@@ -33,7 +32,6 @@ def unmarshall_str(cls, data: str):
 def unmarshall(cls, data: dict):
     """
     Reconstruct an instance of type `cls` from JSON
-    :param ignore_unknown_fields:
     :param cls: The class type. Must be a user defined type
     :param data: The JSON data
     :return: An instance of the class `cls`

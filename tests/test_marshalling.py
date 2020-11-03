@@ -75,9 +75,25 @@ class TestMarshalling(unittest.TestCase):
         self.assertRaises(ValidateError, lambda: marshall.unmarshall(ClassWithValidate, {}))
 
     def test_custom_delegate(self):
-        ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate())
+        ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
         result = marshall.unmarshall(ClassWithCustomDelegate, {})
         self.assertEqual(result, ClassWithCustomDelegate())
+
+    def test_nested_lists(self):
+        nested_lists = NestedList([[Inner("Inner_1", 1)], [Inner("Inner_2", 2)]])
+        result = _marshall_and_unmarshall(NestedList, nested_lists)
+        self.assertEqual(nested_lists, result)
+
+    def nested_dict_list(self):
+        nested = NestedDictList(
+            {
+                "Test1": {
+                    "Test2": NestedList([[Inner("test", 1)], [Inner("test", 2)]])
+                }
+            }
+        )
+        result = _marshall_and_unmarshall(NestedDictList, nested)
+        self.assertEqual(nested, result)
 
 
 def _marshall_and_unmarshall(cls, obj):

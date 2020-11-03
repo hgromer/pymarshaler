@@ -8,19 +8,17 @@ from pymarshall.utils import is_user_defined
 
 
 def _apply_typing(param_type, value: typing.Any) -> typing.Any:
-    if value is None:
-        return None
-    elif is_user_defined(param_type):
-        return param_type(**UserDefinedArgBuilderDelegate(param_type).resolve(value))
-    elif isinstance(value, dict):
-        return param_type(**value)
-    elif issubclass(param_type, datetime.datetime):
-        return parser.parse(value)
-    else:
-        return param_type(value)
+    delegate = ArgBuilderFactory.get_delegate(param_type)
+    result = delegate.resolve(value)
+    if is_user_defined(param_type):
+        return param_type(**result)
+    return result
 
 
 class ArgBuilderDelegate:
+
+    def __init__(self, cls):
+        self.cls = cls
 
     def resolve(self, data):
         raise NotImplementedError(f'{ArgBuilderDelegate.__name__} has no implementation of resolve')
@@ -29,9 +27,9 @@ class ArgBuilderDelegate:
 class ListArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
-        self.cls = cls
+        super().__init__(cls)
 
-    def resolve(self, data):
+    def resolve(self, data: typing.List):
         inner_type = self.cls.__args__[0]
         return [_apply_typing(inner_type, x) for x in data]
 
@@ -39,9 +37,9 @@ class ListArgBuilderDelegate(ArgBuilderDelegate):
 class SetArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
-        self.cls = cls
+        super().__init__(cls)
 
-    def resolve(self, data):
+    def resolve(self, data: typing.Set):
         inner_type = self.cls.__args__[0]
         return {_apply_typing(inner_type, x) for x in data}
 
@@ -49,9 +47,9 @@ class SetArgBuilderDelegate(ArgBuilderDelegate):
 class TupleArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
-        self.cls = cls
+        super().__init__(cls)
 
-    def resolve(self, data):
+    def resolve(self, data: typing.Tuple):
         inner_type = self.cls.__args__[0]
         return (_apply_typing(inner_type, x) for x in data)
 
@@ -59,7 +57,7 @@ class TupleArgBuilderDelegate(ArgBuilderDelegate):
 class DictArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
-        self.cls = cls
+        super().__init__(cls)
 
     def resolve(self, data: dict):
         key_type = self.cls.__args__[0]
@@ -72,7 +70,7 @@ class DictArgBuilderDelegate(ArgBuilderDelegate):
 class BuiltinsArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
-        self.cls = cls
+        super().__init__(cls)
 
     def resolve(self, data):
         if data is None:
@@ -88,7 +86,7 @@ class BuiltinsArgBuilderDelegate(ArgBuilderDelegate):
 class UserDefinedArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
-        self.cls = cls
+        super().__init__(cls)
 
     def resolve(self, data: dict):
         return UserDefinedArgBuilderDelegate._resolve(self.cls, data)
@@ -100,16 +98,8 @@ class UserDefinedArgBuilderDelegate(ArgBuilderDelegate):
         for key, value in data.items():
             if key in unsatisfied:
                 param_type = unsatisfied[key].annotation
-                if is_user_defined(param_type):
-                    result = UserDefinedArgBuilderDelegate._resolve(param_type, value)
-                    args[key] = param_type(**result)
-                else:
-                    args[key] = ArgBuilderFactory.get_delegate(param_type).resolve(value)
+                args[key] = _apply_typing(param_type, value)
         return args
-
-    @staticmethod
-    def _get_unfilled(all_args: dict, to_satisfy: dict):
-        return {k: v for k, v in all_args.items() if k not in to_satisfy}
 
 
 class _RegisteredDelegates:
@@ -132,8 +122,6 @@ class _RegisteredDelegates:
 
 class ArgBuilderFactory:
 
-    _ignore_unknown_fields = False
-
     _registered_delegates = _RegisteredDelegates()
 
     _default_arg_builder_delegates = {
@@ -146,20 +134,12 @@ class ArgBuilderFactory:
     }
 
     @staticmethod
-    def set_ignore_unknown_fields(ignore: bool):
-        ArgBuilderFactory._ignore_unknown_fields = ignore
-
-    @staticmethod
-    def is_ignore_unknown_fields():
-        return ArgBuilderFactory._ignore_unknown_fields
-
-    @staticmethod
     def is_registered(cls):
         return ArgBuilderFactory._registered_delegates.contains(cls)
 
     @staticmethod
-    def register_delegate(cls, delegate: ArgBuilderDelegate):
-        ArgBuilderFactory._registered_delegates.register(cls, delegate)
+    def register_delegate(cls, delegate_cls):
+        ArgBuilderFactory._registered_delegates.register(cls, delegate_cls(cls))
 
     @staticmethod
     def get_delegate(cls) -> ArgBuilderDelegate:

@@ -86,5 +86,20 @@ class ClassWithCustomDelegate(EqualityBuiltIn):
 
 class CustomNoneDelegate(ArgBuilderDelegate):
 
+    def __init__(self, cls):
+        super().__init__(cls)
+
     def resolve(self, data):
         return {}
+
+
+class NestedList(EqualityBuiltIn):
+
+    def __init__(self, multiple_inner_list: List[List[Inner]]):
+        self.multiple_inner_list = multiple_inner_list
+
+
+class NestedDictList(EqualityBuiltIn):
+
+    def __init__(self, d: Dict[str, Dict[str, NestedList]]):
+        self.d = d
