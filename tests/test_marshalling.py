@@ -12,7 +12,7 @@ class TestMarshalling(unittest.TestCase):
         pass
 
     def tearDown(self) -> None:
-        pass
+        ArgBuilderFactory.ignore_unknown_fields(False)
 
     def test_simple_marshalling(self):
         inner = Inner("Inner", 10)
@@ -59,6 +59,7 @@ class TestMarshalling(unittest.TestCase):
         self.assertRaises(ValueError, lambda: marshall.unmarshall(Inner, {'name': 'Inner'}))
 
     def test_ignores_unused(self):
+        ArgBuilderFactory.ignore_unknown_fields(True)
         inner = Inner("Inner", 10)
         marshalled = marshall.marshall(inner)
         j = json.loads(marshalled)

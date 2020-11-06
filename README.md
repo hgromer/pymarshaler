@@ -27,7 +27,7 @@ blob = marshall.marshall(test_instance)
 print(blob)
 >>> '{name: foo}'
 
-result = marshall.unmarshall(Test,json.loads(blob))
+result = marshall.unmarshall(Test, json.loads(blob))
 print(result.name)
 >>> 'foo'
 ```
@@ -47,12 +47,28 @@ blob = marshall.marshall(stores_test)
 print(blob)
 >>> '{test: {name: foo}}'
 
-result = marshall.unmarshall(StoresTest,json.loads(blob))
+result = marshall.unmarshall(StoresTest, json.loads(blob))
 print(result.test.name)
 >>> 'foo'
 ```
 
 As you can see, adding a nested class is as simple as as adding a basic structure.
+
+Pymarshall will fail when encountering an unknown field by default, however you can configure it to ignore unknown fields
+
+```python
+from pymarshall import marshall
+from pymarshall.arg_delegates import ArgBuilderFactory
+
+blob = {'test': 'foo', 'unused_field': 'blah'}
+result = marshall.unmarshall(Test, blob)
+>>> 'Found unknown field (unused_field: blah). If you would like to skip unknown fields set ArgBuilderFactory.ignore_unknown_fields(True))'
+
+ArgBuilderFactory.ignore_unknown_fields(True)
+result = marshall.unmarshall(Test, blob)
+print(result.name)
+>>> 'foo'
+```
 
 ## Advanced Usage
 

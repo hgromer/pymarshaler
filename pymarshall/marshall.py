@@ -4,6 +4,7 @@ import json
 import jsonpickle
 
 from pymarshall.arg_delegates import ArgBuilderFactory
+from pymarshall.errors import PymarshallError
 
 
 def unmarshall_str(cls, data: str):

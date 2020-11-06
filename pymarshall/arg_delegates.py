@@ -4,6 +4,7 @@ import typing
 
 import dateutil.parser as parser
 
+from pymarshall.errors import UnknownFieldError
 from pymarshall.utils import is_user_defined
 
 
@@ -85,20 +86,24 @@ class BuiltinsArgBuilderDelegate(ArgBuilderDelegate):
 
 class UserDefinedArgBuilderDelegate(ArgBuilderDelegate):
 
-    def __init__(self, cls):
+    def __init__(self, cls, ignore_unknown_fields: bool):
         super().__init__(cls)
+        self.ignore_unknown_fields = ignore_unknown_fields
 
     def resolve(self, data: dict):
-        return UserDefinedArgBuilderDelegate._resolve(self.cls, data)
+        return self._resolve(self.cls, data)
 
-    @staticmethod
-    def _resolve(cls, data: dict):
+    def _resolve(self, cls, data: dict):
         args = {}
         unsatisfied = inspect.signature(cls.__init__).parameters
         for key, value in data.items():
             if key in unsatisfied:
                 param_type = unsatisfied[key].annotation
                 args[key] = _apply_typing(param_type, value)
+            elif not self.ignore_unknown_fields:
+                raise UnknownFieldError(f'Found unknown field ({key}: {value}). '
+                                 'If you would like to skip unknown fields set '
+                                 'ArgBuilderFactory.ignore_unknown_fields(True))')
         return args
 
 
@@ -121,6 +126,7 @@ class _RegisteredDelegates:
 
 
 class ArgBuilderFactory:
+    _ignore_unknown_fields = False
 
     _registered_delegates = _RegisteredDelegates()
 
@@ -130,8 +136,12 @@ class ArgBuilderFactory:
         typing.Tuple._name: lambda x: TupleArgBuilderDelegate(x),
         typing.Dict._name: lambda x: DictArgBuilderDelegate(x),
         "PythonBuiltin": lambda x: BuiltinsArgBuilderDelegate(x),
-        "UserDefined": lambda x: UserDefinedArgBuilderDelegate(x)
+        "UserDefined": lambda x: UserDefinedArgBuilderDelegate(x, ArgBuilderFactory._ignore_unknown_fields)
     }
+
+    @staticmethod
+    def ignore_unknown_fields(ignore: bool):
+        ArgBuilderFactory._ignore_unknown_fields = ignore
 
     @staticmethod
     def is_registered(cls):
