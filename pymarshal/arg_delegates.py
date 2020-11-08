@@ -4,8 +4,8 @@ import typing
 
 import dateutil.parser as parser
 
-from pymarshall.errors import UnknownFieldError, InvalidDelegateError
-from pymarshall.utils import is_user_defined, is_builtin
+from pymarshal.errors import UnknownFieldError, InvalidDelegateError
+from pymarshal.utils import is_user_defined, is_builtin
 
 
 def _apply_typing(param_type, value: typing.Any) -> typing.Any:

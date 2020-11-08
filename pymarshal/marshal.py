@@ -3,11 +3,11 @@ import json
 
 import jsonpickle
 
-from pymarshall.arg_delegates import ArgBuilderFactory
-from pymarshall.errors import MissingFieldsError
+from pymarshal.arg_delegates import ArgBuilderFactory
+from pymarshal.errors import MissingFieldsError
 
 
-def unmarshall_str(cls, data: str):
+def unmarshal_str(cls, data: str):
     """
     Reconstruct an instance of type `cls` from a JSON formatted string
     :param cls: The class type. Must be a user defined type
@@ -23,14 +23,14 @@ def unmarshall_str(cls, data: str):
 
 
     >>> data = "{'name': 'foo'}"
-    >>> test_instance = unmarshall_str(Test,data)
+    >>> test_instance = unmarshal_str(Test,data)
     >>> print(test_instance.name)
     'foo'
     """
-    return unmarshall(cls, json.loads(data))
+    return unmarshal(cls, json.loads(data))
 
 
-def unmarshall(cls, data: dict):
+def unmarshal(cls, data: dict):
     """
     Reconstruct an instance of type `cls` from JSON
     :param cls: The class type. Must be a user defined type
@@ -46,17 +46,17 @@ def unmarshall(cls, data: dict):
 
 
     >>> data = {'name': 'foo'}
-    >>> test_instance = unmarshall(Test, data)
+    >>> test_instance = unmarshal(Test, data)
     >>> print(test_instance.name)
     'foo'
     """
     try:
-        return _unmarshall(cls, data)
+        return _unmarshal(cls, data)
     except ValueError:
-        raise ValueError(f'Failed to pymarshall {data} to class {cls.__name__}')
+        raise ValueError(f'Failed to pymarshal {data} to class {cls.__name__}')
 
 
-def marshall(obj, indent=2) -> str:
+def marshal(obj, indent=2) -> str:
     """
     Convert a class instance to a JSON formatted string
     :param obj: The object to convert
@@ -72,14 +72,14 @@ def marshall(obj, indent=2) -> str:
 
 
     >>> test_instance = Test('foo', indent=0)
-    >>> data = pymarshall(test_instance)
+    >>> data = pymarshal(test_instance)
     >>> print(data)
     '{name: foo}'
     """
     return jsonpickle.encode(obj, unpicklable=False, indent=indent)
 
 
-def _unmarshall(cls, data: dict):
+def _unmarshal(cls, data: dict):
     init_params = inspect.signature(cls.__init__).parameters
     args = ArgBuilderFactory.get_delegate(cls).resolve(data)
     missing = _get_unsatisfied_args(args, init_params)

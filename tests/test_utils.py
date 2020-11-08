@@ -1,6 +1,6 @@
 import unittest
 
-from pymarshall.utils import is_user_defined, is_builtin
+from pymarshal.utils import is_user_defined, is_builtin
 from tests.test_classes import *
 
 

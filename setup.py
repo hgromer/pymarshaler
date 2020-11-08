@@ -4,14 +4,14 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="pymarshall",
-    version="0.2.4",
+    name="pymarshal",
+    version="0.1.0",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
-    description="Package to marshall and unmarshall python objects",
+    description="Package to marshal and unmarshal python objects",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/hgromer/pymarshall",
+    url="https://github.com/hgromer/pymarshal",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
