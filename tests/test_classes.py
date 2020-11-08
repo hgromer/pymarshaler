@@ -63,6 +63,12 @@ class ClassWithDict(EqualityBuiltIn):
         self.d = d
 
 
+class ClassWithNestedDict(EqualityBuiltIn):
+
+    def __init__(self, d: Dict[str, ClassWithDict]):
+        self.d = d
+
+
 class ValidateError(Exception):
 
     def __init__(self):

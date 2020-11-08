@@ -62,7 +62,7 @@ from pymarshall.arg_delegates import ArgBuilderFactory
 
 blob = {'test': 'foo', 'unused_field': 'blah'}
 result = marshall.unmarshall(Test, blob)
->>> 'Found unknown field (unused_field: blah). If you would like to skip unknown fields set ArgBuilderFactory.ignore_unknown_fields(True))'
+>>> 'Found unknown field (unused_field: blah). If you would like to skip unknown fields set ArgBuilderFactory.ignore_unknown_fields(True)'
 
 ArgBuilderFactory.ignore_unknown_fields(True)
 result = marshall.unmarshall(Test, blob)
@@ -132,7 +132,7 @@ result = marshall.unmarshall(TestWithValidate, {'name': 'foo'})
 
 This can be used to validate the python object right at construction, potentially raising an error if any of the fields have invalid values
 
-It's also possible to register your own customer unmarshaller for specific user defined classes.
+It's also possible to register your own custom unmarshaller for specific user defined classes.
 
 ```python
 from pymarshall.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory

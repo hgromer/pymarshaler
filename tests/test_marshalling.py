@@ -3,6 +3,7 @@ import unittest
 
 from pymarshall import marshall
 from pymarshall.arg_delegates import ArgBuilderFactory
+from pymarshall.errors import MissingFieldsError, UnknownFieldError
 from tests.test_classes import *
 
 
@@ -55,8 +56,33 @@ class TestMarshalling(unittest.TestCase):
         result = _marshall_and_unmarshall(ClassWithDict, class_with_dict)
         self.assertEqual(result, class_with_dict)
 
+    def test_nested_dict_marshalling(self):
+        nested_dict = ClassWithNestedDict(
+            {
+                'nested1': ClassWithDict(
+                    {
+                        'Test': Inner('Inner', 1)
+                    },
+                ),
+                'nested2': ClassWithDict(
+                    {
+                        'Test1': Inner('Inner', 1),
+                        'Test2': Inner('Inner', 2)
+                    }
+                )
+            }
+        )
+        result = _marshall_and_unmarshall(ClassWithNestedDict, nested_dict)
+        self.assertEqual(nested_dict, result)
+
     def test_fails_on_missing(self):
-        self.assertRaises(ValueError, lambda: marshall.unmarshall(Inner, {'name': 'Inner'}))
+        self.assertRaises(MissingFieldsError, lambda: marshall.unmarshall(Inner, {'name': 'Inner'}))
+
+    def test_fails_on_unused(self):
+        inner = Inner("Inner", 10)
+        blob = json.loads(marshall.marshall(inner))
+        blob['unused'] = 10
+        self.assertRaises(UnknownFieldError, lambda: marshall.unmarshall(Inner, blob))
 
     def test_ignores_unused(self):
         ArgBuilderFactory.ignore_unknown_fields(True)
@@ -95,6 +121,14 @@ class TestMarshalling(unittest.TestCase):
         )
         result = _marshall_and_unmarshall(NestedDictList, nested)
         self.assertEqual(nested, result)
+
+    def test_walk_unknown(self):
+        ArgBuilderFactory.walk_unknown_fields(True)
+        blob = {
+            'blah': {'name': 'foo', 'blah2': {'value': 1}}
+        }
+        result = marshall.unmarshall(Inner, blob)
+        self.assertEqual(result, Inner('foo', 1))
 
 
 def _marshall_and_unmarshall(cls, obj):

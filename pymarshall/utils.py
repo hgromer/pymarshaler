@@ -31,3 +31,10 @@ def is_user_defined(cls, ignore=None) -> bool:
         and cls is not inspect.Parameter.empty \
         and cls.__module__ != 'builtins' \
         and cls not in ignore
+
+
+def is_builtin(cls) -> bool:
+    try:
+        return cls.__module__ == 'builtins'
+    except AttributeError:
+        return False

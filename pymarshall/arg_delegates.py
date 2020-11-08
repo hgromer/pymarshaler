@@ -4,8 +4,8 @@ import typing
 
 import dateutil.parser as parser
 
-from pymarshall.errors import UnknownFieldError
-from pymarshall.utils import is_user_defined
+from pymarshall.errors import UnknownFieldError, InvalidDelegateError
+from pymarshall.utils import is_user_defined, is_builtin
 
 
 def _apply_typing(param_type, value: typing.Any) -> typing.Any:
@@ -68,7 +68,7 @@ class DictArgBuilderDelegate(ArgBuilderDelegate):
         }
 
 
-class BuiltinsArgBuilderDelegate(ArgBuilderDelegate):
+class BuiltinArgBuilderDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
         super().__init__(cls)
@@ -76,19 +76,25 @@ class BuiltinsArgBuilderDelegate(ArgBuilderDelegate):
     def resolve(self, data):
         if data is None:
             return None
-        elif isinstance(data, dict):
-            return self.cls(**data)
-        elif issubclass(self.cls, datetime.datetime):
-            return parser.parse(data)
         else:
             return self.cls(data)
 
 
+class DateTimeArgBuilderDelegate(ArgBuilderDelegate):
+
+    def __init__(self):
+        super().__init__(datetime.datetime)
+
+    def resolve(self, data):
+        return parser.parse(data)
+
+
 class UserDefinedArgBuilderDelegate(ArgBuilderDelegate):
 
-    def __init__(self, cls, ignore_unknown_fields: bool):
+    def __init__(self, cls, ignore_unknown_fields: bool, walk_unknown_fields: bool):
         super().__init__(cls)
         self.ignore_unknown_fields = ignore_unknown_fields
+        self.walk_unknown_fields = walk_unknown_fields
 
     def resolve(self, data: dict):
         return self._resolve(self.cls, data)
@@ -102,8 +108,15 @@ class UserDefinedArgBuilderDelegate(ArgBuilderDelegate):
                 args[key] = _apply_typing(param_type, value)
             elif not self.ignore_unknown_fields:
                 raise UnknownFieldError(f'Found unknown field ({key}: {value}). '
-                                 'If you would like to skip unknown fields set '
-                                 'ArgBuilderFactory.ignore_unknown_fields(True))')
+                                        'If you would like to skip unknown fields set '
+                                        'ArgBuilderFactory.ignore_unknown_fields(True)')
+            elif self.walk_unknown_fields:
+                if isinstance(value, dict):
+                    args.update(self._resolve(cls, value))
+                elif isinstance(value, (list, set, tuple)):
+                    for x in value:
+                        if isinstance(x, dict):
+                            args.update(self._resolve(cls, x))
         return args
 
 
@@ -126,6 +139,8 @@ class _RegisteredDelegates:
 
 
 class ArgBuilderFactory:
+    _walk_unknown_fields = False
+
     _ignore_unknown_fields = False
 
     _registered_delegates = _RegisteredDelegates()
@@ -135,17 +150,26 @@ class ArgBuilderFactory:
         typing.Set._name: lambda x: SetArgBuilderDelegate(x),
         typing.Tuple._name: lambda x: TupleArgBuilderDelegate(x),
         typing.Dict._name: lambda x: DictArgBuilderDelegate(x),
-        "PythonBuiltin": lambda x: BuiltinsArgBuilderDelegate(x),
-        "UserDefined": lambda x: UserDefinedArgBuilderDelegate(x, ArgBuilderFactory._ignore_unknown_fields)
+        "PythonBuiltin": lambda x: BuiltinArgBuilderDelegate(x),
+        "UserDefined": lambda x: UserDefinedArgBuilderDelegate(
+            x,
+            ArgBuilderFactory._ignore_unknown_fields,
+            ArgBuilderFactory._walk_unknown_fields
+        ),
+        "DateTime": lambda: DateTimeArgBuilderDelegate(),
     }
+
+    @staticmethod
+    def walk_unknown_fields(walk: bool):
+        ArgBuilderFactory._walk_unknown_fields = walk
+        if walk:
+            ArgBuilderFactory._ignore_unknown_fields = walk
 
     @staticmethod
     def ignore_unknown_fields(ignore: bool):
         ArgBuilderFactory._ignore_unknown_fields = ignore
-
-    @staticmethod
-    def is_registered(cls):
-        return ArgBuilderFactory._registered_delegates.contains(cls)
+        if not ignore:
+            ArgBuilderFactory._walk_unknown_fields = ignore
 
     @staticmethod
     def register_delegate(cls, delegate_cls):
@@ -159,11 +183,15 @@ class ArgBuilderFactory:
             return ArgBuilderFactory._default_arg_builder_delegates['UserDefined'](cls)
         elif '_name' in cls.__dict__:
             return ArgBuilderFactory._safe_get(cls._name)(cls)
-        else:
+        elif issubclass(cls, datetime.datetime):
+            return ArgBuilderFactory._default_arg_builder_delegates['DateTime']()
+        elif is_builtin(cls):
             return ArgBuilderFactory._default_arg_builder_delegates['PythonBuiltin'](cls)
+        else:
+            raise InvalidDelegateError(f'No delegate for class {cls}')
 
     @staticmethod
     def _safe_get(name):
         if name not in ArgBuilderFactory._default_arg_builder_delegates:
-            raise ValueError(f'Unsupported class type {name}')
+            raise InvalidDelegateError(f'Unsupported class type {name}')
         return ArgBuilderFactory._default_arg_builder_delegates[name]

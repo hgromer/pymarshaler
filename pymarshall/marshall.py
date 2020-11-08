@@ -4,7 +4,7 @@ import json
 import jsonpickle
 
 from pymarshall.arg_delegates import ArgBuilderFactory
-from pymarshall.errors import PymarshallError
+from pymarshall.errors import MissingFieldsError
 
 
 def unmarshall_str(cls, data: str):
@@ -86,7 +86,7 @@ def _unmarshall(cls, data: dict):
     if len(missing) > 0:
         unfilled = [key for key, param in missing.items() if param.default is inspect.Parameter.empty]
         if len(unfilled) > 0:
-            raise ValueError(f'Missing required field(s): {", ".join(unfilled)}')
+            raise MissingFieldsError(f'Missing required field(s): {", ".join(unfilled)}')
     result = cls(**args)
     if 'validate' in dir(cls):
         result.validate()
