@@ -1,0 +1,11 @@
+README.md
+setup.py
+pymarshaler/__init__.py
+pymarshaler/arg_delegates.py
+pymarshaler/errors.py
+pymarshaler/marshal.py
+pymarshaler/utils.py
+pymarshaler.egg-info/PKG-INFO
+pymarshaler.egg-info/SOURCES.txt
+pymarshaler.egg-info/dependency_links.txt
+pymarshaler.egg-info/top_level.txt

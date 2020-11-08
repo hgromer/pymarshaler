@@ -1,7 +1,7 @@
 import datetime
 from typing import List, Dict
 
-from pymarshal.arg_delegates import ArgBuilderDelegate
+from pymarshaler.arg_delegates import ArgBuilderDelegate
 
 
 class EqualityBuiltIn:
