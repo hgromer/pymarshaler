@@ -3,8 +3,8 @@ import json
 
 import jsonpickle
 
-from pymarshal.arg_delegates import ArgBuilderFactory
-from pymarshal.errors import MissingFieldsError
+from pymarshaler.arg_delegates import ArgBuilderFactory
+from pymarshaler.errors import MissingFieldsError
 
 
 def unmarshal_str(cls, data: str):
@@ -53,7 +53,7 @@ def unmarshal(cls, data: dict):
     try:
         return _unmarshal(cls, data)
     except ValueError:
-        raise ValueError(f'Failed to pymarshal {data} to class {cls.__name__}')
+        raise ValueError(f'Failed to pymarshaler {data} to class {cls.__name__}')
 
 
 def marshal(obj, indent=2) -> str:
@@ -72,7 +72,7 @@ def marshal(obj, indent=2) -> str:
 
 
     >>> test_instance = Test('foo', indent=0)
-    >>> data = pymarshal(test_instance)
+    >>> data = pymarshaler(test_instance)
     >>> print(data)
     '{name: foo}'
     """

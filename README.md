@@ -1,9 +1,9 @@
-# Pymarshal - Marshal and Unmarshal Python Objects
+# Pymarshaler - Marshal and Unmarshal Python Objects
 
 ## About
-Pymarshal allows you to marshal and unmarshal any python object directly to and from a JSON formatted string. 
+Pymarshaler allows you to marshal and unmarshal any python object directly to and from a JSON formatted string. 
 
-Pymarshal takes advantage of python's new [typing support](https://docs.python.org/3/library/typing.html). By reading class init param types, we are able to walk down nested JSON structures and assign appropriate values.
+Pymarshaler takes advantage of python's new [typing support](https://docs.python.org/3/library/typing.html). By reading class init param types, we are able to walk down nested JSON structures and assign appropriate values.
 
 ## Basic Usage
 
@@ -19,7 +19,7 @@ class Test:
 That's it! We can now marshal, and more importantly, unmarshal this object to and from JSON.
 
 ```python
-from pymarshal import marshal
+from pymarshaler import marshal
 import json
 
 test_instance = Test('foo')
@@ -54,11 +54,11 @@ print(result.test.name)
 
 As you can see, adding a nested class is as simple as as adding a basic structure.
 
-Pymarshal will fail when encountering an unknown field by default, however you can configure it to ignore unknown fields
+Pymarshaler will fail when encountering an unknown field by default, however you can configure it to ignore unknown fields
 
 ```python
-from pymarshal import marshal
-from pymarshal.arg_delegates import ArgBuilderFactory
+from pymarshaler import marshal
+from pymarshaler.arg_delegates import ArgBuilderFactory
 
 blob = {'test': 'foo', 'unused_field': 'blah'}
 result = marshal.unmarshal(Test, blob)
@@ -72,10 +72,10 @@ print(result.name)
 
 ## Advanced Usage
 
-We can use pymarshal to handle containers as well. Again we take advantage of python's robust typing system
+We can use pymarshaler to handle containers as well. Again we take advantage of python's robust typing system
 
 ```python
-from pymarshal import marshal
+from pymarshaler import marshal
 from typing import Set
 import json
 
@@ -94,12 +94,12 @@ print(result.container)
 >>> '{foo, bar}'
 ```
 
-Pymarshal can also handle containers that store user defined types. The `Set[str]` could easily have been `Set[UserDefinedType]`
+Pymarshaler can also handle containers that store user defined types. The `Set[str]` could easily have been `Set[UserDefinedType]`
 
-Pymarshal also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
+Pymarshaler also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
 
 ```python
-from pymarshal import marshal
+from pymarshaler import marshal
 
 class TestWithDefault:
 
@@ -110,12 +110,12 @@ result = marshal.unmarshal(TestWithDefault, {})
 print(result.name)
 >>> 'foo'
 ```
-Pymarshal will raise an error if any non-default attributes aren't given
+Pymarshaler will raise an error if any non-default attributes aren't given
 
-Pymarshal also supports a validate method on creation of the python object. This method will be called before being returned to the user.
+Pymarshaler also supports a validate method on creation of the python object. This method will be called before being returned to the user.
 
 ```python
-from pymarshal import marshal
+from pymarshaler import marshal
 
 class TestWithValidate:
 
@@ -135,8 +135,8 @@ This can be used to validate the python object right at construction, potentiall
 It's also possible to register your own custom unmarshaler for specific user defined classes.
 
 ```python
-from pymarshal.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory
-from pymarshal import marshal
+from pymarshaler.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory
+from pymarshaler import marshal
 
 
 class ClassWithMessage:

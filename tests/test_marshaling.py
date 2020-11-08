@@ -1,9 +1,9 @@
 import json
 import unittest
 
-from pymarshal import marshal
-from pymarshal.arg_delegates import ArgBuilderFactory
-from pymarshal.errors import MissingFieldsError, UnknownFieldError
+from pymarshaler import marshal
+from pymarshaler.arg_delegates import ArgBuilderFactory
+from pymarshaler.errors import MissingFieldsError, UnknownFieldError
 
 from tests.test_classes import *
 
