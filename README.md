@@ -1,9 +1,9 @@
-# Pymarshall - Marshall and Unmarshall Python Objects
+# Pymarshal - Marshal and Unmarshal Python Objects
 
 ## About
-Pymarshall allows you to marshall and unmarshall any python object directly to and from a JSON formatted string. 
+Pymarshal allows you to marshal and unmarshal any python object directly to and from a JSON formatted string. 
 
-Pymarshall takes advantage of python's new [typing support](https://docs.python.org/3/library/typing.html). By reading class init param types, we are able to walk down nested JSON structures and assign appropriate values.
+Pymarshal takes advantage of python's new [typing support](https://docs.python.org/3/library/typing.html). By reading class init param types, we are able to walk down nested JSON structures and assign appropriate values.
 
 ## Basic Usage
 
@@ -16,23 +16,23 @@ class Test:
         self.name = name
 ```
 
-That's it! We can now marshall, and more importantly, unmarshall this object to and from JSON.
+That's it! We can now marshal, and more importantly, unmarshal this object to and from JSON.
 
 ```python
-from pymarshall import marshall
+from pymarshal import marshal
 import json
 
 test_instance = Test('foo')
-blob = marshall.marshall(test_instance)
+blob = marshal.marshal(test_instance)
 print(blob)
 >>> '{name: foo}'
 
-result = marshall.unmarshall(Test, json.loads(blob))
+result = marshal.unmarshal(Test, json.loads(blob))
 print(result.name)
 >>> 'foo'
 ```
 
-We also use `marshall.unmarshall_str(cls, str)` if we want to unmarshall directly from the blob source.
+We also use `marshal.unmarshal_str(cls, str)` if we want to unmarshal directly from the blob source.
 
 This is a pretty trivial example, lets add in a nested class
 
@@ -43,39 +43,39 @@ class StoresTest:
         self.test = test
 
 stores_test = StoresTest(Test('foo'))
-blob = marshall.marshall(stores_test)
+blob = marshal.marshal(stores_test)
 print(blob)
 >>> '{test: {name: foo}}'
 
-result = marshall.unmarshall(StoresTest, json.loads(blob))
+result = marshal.unmarshal(StoresTest, json.loads(blob))
 print(result.test.name)
 >>> 'foo'
 ```
 
 As you can see, adding a nested class is as simple as as adding a basic structure.
 
-Pymarshall will fail when encountering an unknown field by default, however you can configure it to ignore unknown fields
+Pymarshal will fail when encountering an unknown field by default, however you can configure it to ignore unknown fields
 
 ```python
-from pymarshall import marshall
-from pymarshall.arg_delegates import ArgBuilderFactory
+from pymarshal import marshal
+from pymarshal.arg_delegates import ArgBuilderFactory
 
 blob = {'test': 'foo', 'unused_field': 'blah'}
-result = marshall.unmarshall(Test, blob)
+result = marshal.unmarshal(Test, blob)
 >>> 'Found unknown field (unused_field: blah). If you would like to skip unknown fields set ArgBuilderFactory.ignore_unknown_fields(True)'
 
 ArgBuilderFactory.ignore_unknown_fields(True)
-result = marshall.unmarshall(Test, blob)
+result = marshal.unmarshal(Test, blob)
 print(result.name)
 >>> 'foo'
 ```
 
 ## Advanced Usage
 
-We can use pymarshall to handle containers as well. Again we take advantage of python's robust typing system
+We can use pymarshal to handle containers as well. Again we take advantage of python's robust typing system
 
 ```python
-from pymarshall import marshall
+from pymarshal import marshal
 from typing import Set
 import json
 
@@ -85,37 +85,37 @@ class TestContainer:
         self.container = container
 
 container_instance = TestContainer({'foo', 'bar'})        
-blob = marshall.marshall(container_instance)
+blob = marshal.marshal(container_instance)
 print(blob)
 >>> '{container: ["foo", "bar"]}'
 
-result = marshall.unmarshall(TestContainer,json.loads(blob))
+result = marshal.unmarshal(TestContainer,json.loads(blob))
 print(result.container)
 >>> '{foo, bar}'
 ```
 
-Pymarshall can also handle containers that store user defined types. The `Set[str]` could easily have been `Set[UserDefinedType]`
+Pymarshal can also handle containers that store user defined types. The `Set[str]` could easily have been `Set[UserDefinedType]`
 
-Pymarshall also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
+Pymarshal also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
 
 ```python
-from pymarshall import marshall
+from pymarshal import marshal
 
 class TestWithDefault:
 
     def __init__(self, name: str = 'foo'):
         self.name = name
 
-result = marshall.unmarshall(TestWithDefault, {})
+result = marshal.unmarshal(TestWithDefault, {})
 print(result.name)
 >>> 'foo'
 ```
-Pymarshall will raise an error if any non-default attributes aren't given
+Pymarshal will raise an error if any non-default attributes aren't given
 
-Pymarshall also supports a validate method on creation of the python object. This method will be called before being returned to the user.
+Pymarshal also supports a validate method on creation of the python object. This method will be called before being returned to the user.
 
 ```python
-from pymarshall import marshall
+from pymarshal import marshal
 
 class TestWithValidate:
 
@@ -126,17 +126,17 @@ class TestWithValidate:
         print(f'My name is {self.name}!')
 
 
-result = marshall.unmarshall(TestWithValidate, {'name': 'foo'})
+result = marshal.unmarshal(TestWithValidate, {'name': 'foo'})
 >>> 'My name is foo!'
 ```
 
 This can be used to validate the python object right at construction, potentially raising an error if any of the fields have invalid values
 
-It's also possible to register your own custom unmarshaller for specific user defined classes.
+It's also possible to register your own custom unmarshaler for specific user defined classes.
 
 ```python
-from pymarshall.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory
-from pymarshall import marshall
+from pymarshal.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory
+from pymarshal import marshal
 
 
 class ClassWithMessage:
@@ -161,7 +161,7 @@ class CustomDelegate(ArgBuilderDelegate):
 
 
 ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomDelegate)
-result = marshall.unmarshall(ClassWithCustomDelegate, {'message': 'Hello from the custom delegate!'})
+result = marshal.unmarshal(ClassWithCustomDelegate, {'message': 'Hello from the custom delegate!'})
 print(result.message_obj)
 >>> 'Hello from the custom delegate!'
 ```

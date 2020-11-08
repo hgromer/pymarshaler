@@ -1,9 +1,10 @@
 import json
 import unittest
 
-from pymarshall import marshall
-from pymarshall.arg_delegates import ArgBuilderFactory
-from pymarshall.errors import MissingFieldsError, UnknownFieldError
+from pymarshal import marshal
+from pymarshal.arg_delegates import ArgBuilderFactory
+from pymarshal.errors import MissingFieldsError, UnknownFieldError
+
 from tests.test_classes import *
 
 
@@ -76,34 +77,34 @@ class TestMarshalling(unittest.TestCase):
         self.assertEqual(nested_dict, result)
 
     def test_fails_on_missing(self):
-        self.assertRaises(MissingFieldsError, lambda: marshall.unmarshall(Inner, {'name': 'Inner'}))
+        self.assertRaises(MissingFieldsError, lambda: marshal.unmarshal(Inner, {'name': 'Inner'}))
 
     def test_fails_on_unused(self):
         inner = Inner("Inner", 10)
-        blob = json.loads(marshall.marshall(inner))
+        blob = json.loads(marshal.marshal(inner))
         blob['unused'] = 10
-        self.assertRaises(UnknownFieldError, lambda: marshall.unmarshall(Inner, blob))
+        self.assertRaises(UnknownFieldError, lambda: marshal.unmarshal(Inner, blob))
 
     def test_ignores_unused(self):
         ArgBuilderFactory.ignore_unknown_fields(True)
         inner = Inner("Inner", 10)
-        marshalled = marshall.marshall(inner)
+        marshalled = marshal.marshal(inner)
         j = json.loads(marshalled)
         j['unused'] = 10
-        result = marshall.unmarshall(Inner, j)
+        result = marshal.unmarshal(Inner, j)
         self.assertEqual(result, inner)
 
     def test_default_values(self):
         class_with_defaults = ClassWithDefaults()
-        result = marshall.unmarshall(ClassWithDefaults, {})
+        result = marshal.unmarshal(ClassWithDefaults, {})
         self.assertEqual(result, class_with_defaults)
 
     def test_validate(self):
-        self.assertRaises(ValidateError, lambda: marshall.unmarshall(ClassWithValidate, {}))
+        self.assertRaises(ValidateError, lambda: marshal.unmarshal(ClassWithValidate, {}))
 
     def test_custom_delegate(self):
         ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
-        result = marshall.unmarshall(ClassWithCustomDelegate, {})
+        result = marshal.unmarshal(ClassWithCustomDelegate, {})
         self.assertEqual(result, ClassWithCustomDelegate())
 
     def test_nested_lists(self):
@@ -127,13 +128,13 @@ class TestMarshalling(unittest.TestCase):
         blob = {
             'blah': {'name': 'foo', 'blah2': {'value': 1}}
         }
-        result = marshall.unmarshall(Inner, blob)
+        result = marshal.unmarshal(Inner, blob)
         self.assertEqual(result, Inner('foo', 1))
 
 
 def _marshall_and_unmarshall(cls, obj):
-    marshalled = marshall.marshall(obj)
-    return marshall.unmarshall_str(cls, marshalled)
+    marshalled = marshal.marshal(obj)
+    return marshal.unmarshal_str(cls, marshalled)
 
 
 if __name__ == '__main__':
