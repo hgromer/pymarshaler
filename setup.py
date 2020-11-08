@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymarshaler",
-    version="0.1.0",
+    version="0.1.1",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
     description="Package to marshal and unmarshal python objects",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/hgromer/pymarshal",
+    url="https://github.com/hgromer/pymarshaler",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
