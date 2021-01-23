@@ -1,18 +1,18 @@
-class PymarshallError(RuntimeError):
+class PymarshalError(RuntimeError):
     pass
 
 
-class UnknownFieldError(PymarshallError):
+class UnknownFieldError(PymarshalError):
     pass
 
 
-class UnsupportedClassError(PymarshallError):
+class UnsupportedClassError(PymarshalError):
     pass
 
 
-class InvalidDelegateError(PymarshallError):
+class InvalidDelegateError(PymarshalError):
     pass
 
 
-class MissingFieldsError(PymarshallError):
+class MissingFieldsError(PymarshalError):
     pass

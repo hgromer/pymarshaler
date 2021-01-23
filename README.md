@@ -19,14 +19,15 @@ class Test:
 That's it! We can now marshal, and more importantly, unmarshal this object to and from JSON.
 
 ```python
-from pymarshaler import marshal
+from pymarshaler.marshal import Marshal
 import json
 
 test_instance = Test('foo')
-blob = marshal.marshal(test_instance)
+blob = Marshal.marshal(test_instance)
 print(blob)
 >>> '{name: foo}'
 
+marshal = Marshal()
 result = marshal.unmarshal(Test, json.loads(blob))
 print(result.name)
 >>> 'foo'
@@ -57,14 +58,15 @@ As you can see, adding a nested class is as simple as as adding a basic structur
 Pymarshaler will fail when encountering an unknown field by default, however you can configure it to ignore unknown fields
 
 ```python
-from pymarshaler import marshal
+from pymarshaler.marshal import Marshal 
 from pymarshaler.arg_delegates import ArgBuilderFactory
 
+marshal = Marshal()
 blob = {'test': 'foo', 'unused_field': 'blah'}
 result = marshal.unmarshal(Test, blob)
->>> 'Found unknown field (unused_field: blah). If you would like to skip unknown fields set ArgBuilderFactory.ignore_unknown_fields(True)'
+>>> 'Found unknown field (unused_field: blah). If you would like to skip unknown fields create a Marshal object who can skip ignore_unknown_fields'
 
-ArgBuilderFactory.ignore_unknown_fields(True)
+marhsal = Marshal(ignore_unknown_fields=True)
 result = marshal.unmarshal(Test, blob)
 print(result.name)
 >>> 'foo'
@@ -75,7 +77,7 @@ print(result.name)
 We can use pymarshaler to handle containers as well. Again we take advantage of python's robust typing system
 
 ```python
-from pymarshaler import marshal
+from pymarshaler.marshal import Marshal
 from typing import Set
 import json
 
@@ -84,6 +86,7 @@ class TestContainer:
     def __int__(self, container: Set[str]):
         self.container = container
 
+marshal = Marshal()
 container_instance = TestContainer({'foo', 'bar'})        
 blob = marshal.marshal(container_instance)
 print(blob)
@@ -99,13 +102,14 @@ Pymarshaler can also handle containers that store user defined types. The `Set[s
 Pymarshaler also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
 
 ```python
-from pymarshaler import marshal
+from pymarshaler.marshal import Marshal
 
 class TestWithDefault:
 
     def __init__(self, name: str = 'foo'):
         self.name = name
 
+marshal = Marshal()
 result = marshal.unmarshal(TestWithDefault, {})
 print(result.name)
 >>> 'foo'
@@ -115,7 +119,7 @@ Pymarshaler will raise an error if any non-default attributes aren't given
 Pymarshaler also supports a validate method on creation of the python object. This method will be called before being returned to the user.
 
 ```python
-from pymarshaler import marshal
+from pymarshaler.marshal import Marshal
 
 class TestWithValidate:
 
@@ -126,6 +130,7 @@ class TestWithValidate:
         print(f'My name is {self.name}!')
 
 
+marshal = Marshal()
 result = marshal.unmarshal(TestWithValidate, {'name': 'foo'})
 >>> 'My name is foo!'
 ```
@@ -135,8 +140,8 @@ This can be used to validate the python object right at construction, potentiall
 It's also possible to register your own custom unmarshaler for specific user defined classes.
 
 ```python
-from pymarshaler.arg_delegates import ArgBuilderDelegate, ArgBuilderFactory
-from pymarshaler import marshal
+from pymarshaler.arg_delegates import ArgBuilderDelegate 
+from pymarshaler.marshal import Marshal
 
 
 class ClassWithMessage:
@@ -160,7 +165,8 @@ class CustomDelegate(ArgBuilderDelegate):
         return {'message_obj': ClassWithMessage(data['message'])}
 
 
-ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomDelegate)
+marshal = Marshal()
+marshal.register_delegate(ClassWithCustomDelegate, CustomDelegate)
 result = marshal.unmarshal(ClassWithCustomDelegate, {'message': 'Hello from the custom delegate!'})
 print(result.message_obj)
 >>> 'Hello from the custom delegate!'

@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pymarshaler",
-    version="0.1.1",
+    version="0.2.0",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
     description="Package to marshal and unmarshal python objects",

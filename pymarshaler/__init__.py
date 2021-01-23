@@ -1,7 +1,7 @@
-__version__ = '0.1.1'
-__all__ = ['marshal', 'utils', 'arg_delegates', 'errors']
+__version__ = '0.2.0'
+__all__ = ['Marshal', 'utils', 'arg_delegates', 'errors']
 
-from pymarshaler import marshal
+from pymarshaler.marshal import Marshal
 from pymarshaler import utils
 from pymarshaler import arg_delegates
 from pymarshaler import errors
