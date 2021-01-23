@@ -2,10 +2,11 @@ import json
 import unittest
 
 from pymarshaler import marshal
-from pymarshaler.arg_delegates import ArgBuilderFactory
 from pymarshaler.errors import MissingFieldsError, UnknownFieldError
-
+from pymarshaler.marshal import Marshal
 from tests.test_classes import *
+
+marshal = Marshal()
 
 
 class TestMarshalling(unittest.TestCase):
@@ -14,7 +15,7 @@ class TestMarshalling(unittest.TestCase):
         pass
 
     def tearDown(self) -> None:
-        ArgBuilderFactory.ignore_unknown_fields(False)
+        marshal = Marshal()
 
     def test_simple_marshalling(self):
         inner = Inner("Inner", 10)
@@ -86,7 +87,7 @@ class TestMarshalling(unittest.TestCase):
         self.assertRaises(UnknownFieldError, lambda: marshal.unmarshal(Inner, blob))
 
     def test_ignores_unused(self):
-        ArgBuilderFactory.ignore_unknown_fields(True)
+        marshal = Marshal(ignore_unknown_fields=True)
         inner = Inner("Inner", 10)
         marshalled = marshal.marshal(inner)
         j = json.loads(marshalled)
@@ -103,7 +104,7 @@ class TestMarshalling(unittest.TestCase):
         self.assertRaises(ValidateError, lambda: marshal.unmarshal(ClassWithValidate, {}))
 
     def test_custom_delegate(self):
-        ArgBuilderFactory.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
+        marshal.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
         result = marshal.unmarshal(ClassWithCustomDelegate, {})
         self.assertEqual(result, ClassWithCustomDelegate())
 
@@ -124,7 +125,7 @@ class TestMarshalling(unittest.TestCase):
         self.assertEqual(nested, result)
 
     def test_walk_unknown(self):
-        ArgBuilderFactory.walk_unknown_fields(True)
+        marshal = Marshal(True, True)
         blob = {
             'blah': {'name': 'foo', 'blah2': {'value': 1}}
         }
@@ -133,7 +134,7 @@ class TestMarshalling(unittest.TestCase):
 
 
 def _marshall_and_unmarshall(cls, obj):
-    marshalled = marshal.marshal(obj)
+    marshalled = Marshal.marshal(obj)
     return marshal.unmarshal_str(cls, marshalled)
 
 
