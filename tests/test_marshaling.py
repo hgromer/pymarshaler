@@ -5,6 +5,7 @@ from pymarshaler import marshal
 from pymarshaler.errors import MissingFieldsError, UnknownFieldError
 from pymarshaler.marshal import Marshal
 from tests.test_classes import *
+from tests.timed import timed
 
 marshal = Marshal()
 
@@ -17,11 +18,13 @@ class TestMarshalling(unittest.TestCase):
     def tearDown(self) -> None:
         marshal = Marshal()
 
+    @timed
     def test_simple_marshalling(self):
         inner = Inner("Inner", 10)
         inner_result = _marshall_and_unmarshall(Inner, inner)
         self.assertEqual(inner, inner_result)
 
+    @timed
     def test_nested_marshalling(self):
         inner = Inner("Inner", 10)
         inner_list = [Inner(f'Inner_{i}', i) for i in range(10)]
@@ -29,14 +32,16 @@ class TestMarshalling(unittest.TestCase):
         outter_result = _marshall_and_unmarshall(Outter, outter)
         self.assertEqual(outter, outter_result)
 
+    @timed
     def test_multi_nested(self):
         inner = Inner("Inner", 10)
-        inner_list = [Inner(f'Inner_{i}', i) for i in range(100)]
+        inner_list = [Inner(f'Inner_{i}', i) for i in range(10000)]
         outter = Outter(inner, inner_list)
         multi_nested_outter = MultiNestedOutter(outter)
         result = _marshall_and_unmarshall(MultiNestedOutter, multi_nested_outter)
         self.assertEqual(result, multi_nested_outter)
 
+    @timed
     def test_multi_nested_list(self):
         nested_list = MultiNestedList(
             [MultiNestedOutter(
@@ -48,16 +53,19 @@ class TestMarshalling(unittest.TestCase):
         result = _marshall_and_unmarshall(MultiNestedList, nested_list)
         self.assertEqual(result, nested_list)
 
+    @timed
     def test_datetime_marshalling(self):
         class_with_date = ClassWithDate(datetime.datetime.now())
         result = _marshall_and_unmarshall(ClassWithDate, class_with_date)
         self.assertEqual(class_with_date, result)
 
+    @timed
     def test_dict_marshalling(self):
         class_with_dict = ClassWithDict({'Test': Inner('inner', 1)})
         result = _marshall_and_unmarshall(ClassWithDict, class_with_dict)
         self.assertEqual(result, class_with_dict)
 
+    @timed
     def test_nested_dict_marshalling(self):
         nested_dict = ClassWithNestedDict(
             {
@@ -77,15 +85,18 @@ class TestMarshalling(unittest.TestCase):
         result = _marshall_and_unmarshall(ClassWithNestedDict, nested_dict)
         self.assertEqual(nested_dict, result)
 
+    @timed
     def test_fails_on_missing(self):
         self.assertRaises(MissingFieldsError, lambda: marshal.unmarshal(Inner, {'name': 'Inner'}))
 
+    @timed
     def test_fails_on_unused(self):
         inner = Inner("Inner", 10)
         blob = json.loads(marshal.marshal(inner))
         blob['unused'] = 10
         self.assertRaises(UnknownFieldError, lambda: marshal.unmarshal(Inner, blob))
 
+    @timed
     def test_ignores_unused(self):
         marshal = Marshal(ignore_unknown_fields=True)
         inner = Inner("Inner", 10)
@@ -95,24 +106,29 @@ class TestMarshalling(unittest.TestCase):
         result = marshal.unmarshal(Inner, j)
         self.assertEqual(result, inner)
 
+    @timed
     def test_default_values(self):
         class_with_defaults = ClassWithDefaults()
         result = marshal.unmarshal(ClassWithDefaults, {})
         self.assertEqual(result, class_with_defaults)
 
+    @timed
     def test_validate(self):
         self.assertRaises(ValidateError, lambda: marshal.unmarshal(ClassWithValidate, {}))
 
+    @timed
     def test_custom_delegate(self):
         marshal.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
         result = marshal.unmarshal(ClassWithCustomDelegate, {})
         self.assertEqual(result, ClassWithCustomDelegate())
 
+    @timed
     def test_nested_lists(self):
         nested_lists = NestedList([[Inner("Inner_1", 1)], [Inner("Inner_2", 2)]])
         result = _marshall_and_unmarshall(NestedList, nested_lists)
         self.assertEqual(nested_lists, result)
 
+    @timed
     def test_nested_dict_list(self):
         nested = NestedDictList(
             {
@@ -124,6 +140,7 @@ class TestMarshalling(unittest.TestCase):
         result = _marshall_and_unmarshall(NestedDictList, nested)
         self.assertEqual(nested, result)
 
+    @timed
     def test_walk_unknown(self):
         marshal = Marshal(True, True)
         blob = {

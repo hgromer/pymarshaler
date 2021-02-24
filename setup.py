@@ -3,9 +3,12 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+with open('requirements.txt') as f:
+    required = f.read().splitlines()
+
 setuptools.setup(
     name="pymarshaler",
-    version="0.2.0",
+    version="0.2.1",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
     description="Package to marshal and unmarshal python objects",
@@ -18,5 +21,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    install_requires=required,
     python_requires='>=3.7',
 )
