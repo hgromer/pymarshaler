@@ -18,16 +18,16 @@ class _RegisteredDelegates:
         self.registered_delegates = {}
 
     def register(self, cls, delegate: ArgBuilderDelegate):
-        self.registered_delegates[cls.__name__] = delegate
+        self.registered_delegates[cls] = delegate
 
-    def get(self, cls):
-        return self.registered_delegates[cls.__name__]
-
-    def contains(self, cls):
+    def get_for(self, cls):
         try:
-            return cls.__name__ in self.registered_delegates
-        except AttributeError:
-            return False
+            for val in self.registered_delegates:
+                if cls == val or issubclass(cls, val):
+                    return self.registered_delegates[val]
+            return None
+        except TypeError:
+            return None
 
 
 class _ArgBuilderFactory:
@@ -53,8 +53,10 @@ class _ArgBuilderFactory:
         self._registered_delegates.register(cls, delegate_cls(cls))
 
     def get_delegate(self, cls) -> ArgBuilderDelegate:
-        if self._registered_delegates.contains(cls):
-            return self._registered_delegates.get(cls)
+        cls_maybe = self._registered_delegates.get_for(cls)
+
+        if cls_maybe:
+            return cls_maybe
         elif is_user_defined(cls):
             return self._default_arg_builder_delegates['UserDefined'](cls)
         elif '_name' in cls.__dict__:

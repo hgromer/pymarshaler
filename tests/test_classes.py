@@ -90,6 +90,12 @@ class ClassWithCustomDelegate(EqualityBuiltIn):
         pass
 
 
+class ChildWithCustomDelegate(ClassWithCustomDelegate):
+
+    def __init__(self):
+        super().__init__()
+
+
 class CustomNoneDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
