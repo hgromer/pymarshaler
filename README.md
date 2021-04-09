@@ -162,7 +162,7 @@ class CustomDelegate(ArgBuilderDelegate):
         super().__init__(cls)
 
     def resolve(self, data):
-        return {'message_obj': ClassWithMessage(data['message'])}
+        return ClassWithCustomDelegate(ClassWithMessage(data['message']))
 
 
 marshal = Marshal()
@@ -172,5 +172,5 @@ print(result.message_obj)
 >>> 'Hello from the custom delegate!'
 ```
 
-The result from any delegate should be a dictionary, however any data inside the returned dictionary should be in their class form. 
+The result from any delegate should be initialized resulting class instance
 

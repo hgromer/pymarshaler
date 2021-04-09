@@ -26,6 +26,15 @@ class FunctionalArgBuilderDelegate(ArgBuilderDelegate):
         raise NotImplementedError(f'{FunctionalArgBuilderDelegate.__name__} has no implementation of resolve')
 
 
+class EnumArgBuilderDelegate(ArgBuilderDelegate):
+
+    def resolve(self, data: str):
+        for k, v in self.cls.__members__.items():
+            if k == data.upper():
+                return v
+        raise UnknownFieldError(f'Invalid value {data} for enum {self.cls.__name__}')
+
+
 class ListArgBuilderDelegate(FunctionalArgBuilderDelegate):
 
     def __init__(self, cls, func):

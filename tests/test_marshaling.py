@@ -1,6 +1,5 @@
 import json
 import unittest
-from enum import Enum
 
 from pymarshaler.errors import MissingFieldsError, UnknownFieldError
 from pymarshaler.marshal import Marshal
@@ -123,12 +122,6 @@ class TestMarshalling(unittest.TestCase):
         self.assertEqual(result, ClassWithCustomDelegate())
 
     @timed
-    def test_child_custom_delegate(self):
-        marshal.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
-        result = marshal.unmarshal(ChildWithCustomDelegate, {})
-        self.assertEqual(result, ChildWithCustomDelegate())
-
-    @timed
     def test_nested_lists(self):
         nested_lists = NestedList([[Inner("Inner_1", 1)], [Inner("Inner_2", 2)]])
         result = _marshall_and_unmarshall(NestedList, nested_lists)
@@ -154,6 +147,12 @@ class TestMarshalling(unittest.TestCase):
         }
         result = marshal.unmarshal(Inner, blob)
         self.assertEqual(result, Inner('foo', 1))
+
+    @timed
+    def test_enums(self):
+        enum = EnumClass.VAL
+        result = _marshall_and_unmarshall(EnumClass, enum)
+        self.assertEqual(result, enum)
 
 
 def _marshall_and_unmarshall(cls, obj):

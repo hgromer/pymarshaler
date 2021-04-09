@@ -9,7 +9,7 @@ import jsonpickle
 
 from pymarshaler.arg_delegates import ArgBuilderDelegate, ListArgBuilderDelegate, \
     SetArgBuilderDelegate, TupleArgBuilderDelegate, DictArgBuilderDelegate, BuiltinArgBuilderDelegate, \
-    UserDefinedArgBuilderDelegate, DateTimeArgBuilderDelegate
+    UserDefinedArgBuilderDelegate, DateTimeArgBuilderDelegate, EnumArgBuilderDelegate
 from pymarshaler.errors import MissingFieldsError, InvalidDelegateError, PymarshalError
 from pymarshaler.utils import is_builtin, is_user_defined
 
@@ -55,20 +55,25 @@ class _ArgBuilderFactory:
         self._registered_delegates.register(cls, delegate_cls(cls))
 
     def get_delegate(self, cls) -> ArgBuilderDelegate:
-        cls_maybe = self._registered_delegates.get_for(cls)
+        is_class = inspect.isclass(cls)
 
-        if cls_maybe:
-            return cls_maybe
-        elif is_user_defined(cls):
-            return self._default_arg_builder_delegates['UserDefined'](cls)
-        elif '_name' in cls.__dict__:
-            return self._safe_get(cls._name)(cls)
-        elif issubclass(cls, datetime.datetime):
-            return self._default_arg_builder_delegates['DateTime']()
-        elif is_builtin(cls):
-            return self._default_arg_builder_delegates['PythonBuiltin'](cls)
+        if not is_class:
+            if '_name' in cls.__dict__:
+                return self._safe_get(cls._name)(cls)
         else:
-            raise InvalidDelegateError(f'No delegate for class {cls}')
+            cls_maybe = self._registered_delegates.get_for(cls)
+            if cls_maybe:
+                return cls_maybe
+            elif issubclass(cls, Enum):
+                return EnumArgBuilderDelegate(cls)
+            elif is_user_defined(cls):
+                return self._default_arg_builder_delegates['UserDefined'](cls)
+            elif issubclass(cls, datetime.datetime):
+                return self._default_arg_builder_delegates['DateTime']()
+            elif is_builtin(cls):
+                return self._default_arg_builder_delegates['PythonBuiltin'](cls)
+
+        raise InvalidDelegateError(f'No delegate for class {cls}')
 
     def _safe_get(self, name):
         if name not in self._default_arg_builder_delegates:
@@ -172,12 +177,15 @@ class Marshal:
     def _unmarshal(self, cls, data: dict):
         init_params = inspect.signature(cls.__init__).parameters
         args = self._arg_builder_factory.get_delegate(cls).resolve(data)
-        missing = _get_unsatisfied_args(args, init_params)
-        if len(missing) > 0:
-            unfilled = [key for key, param in missing.items() if param.default is inspect.Parameter.empty]
-            if len(unfilled) > 0:
-                raise MissingFieldsError(f'Missing required field(s): {", ".join(unfilled)}')
-        result = cls(**args)
+        if is_user_defined(type(args)):
+            result = args
+        else:
+            missing = _get_unsatisfied_args(args, init_params)
+            if len(missing) > 0:
+                unfilled = [key for key, param in missing.items() if param.default is inspect.Parameter.empty]
+                if len(unfilled) > 0:
+                    raise MissingFieldsError(f'Missing required field(s): {", ".join(unfilled)}')
+            result = cls(**args)
         if 'validate' in dir(cls):
             result.validate()
         return result
@@ -191,4 +199,8 @@ class Marshal:
 
 
 def _get_unsatisfied_args(current_args: dict, all_params: dict):
-    return {k: v for (k, v) in all_params.items() if k not in current_args and k != 'self'}
+    return {k: v for (k, v) in all_params.items() if k not in current_args and _is_valid_missing(k)}
+
+
+def _is_valid_missing(k: str) -> bool:
+    return k != 'self' and k != 'args' and k != 'kwargs'

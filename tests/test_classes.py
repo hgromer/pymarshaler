@@ -1,4 +1,5 @@
 import datetime
+from enum import Enum
 from typing import List, Dict
 
 from pymarshaler.arg_delegates import ArgBuilderDelegate
@@ -90,19 +91,13 @@ class ClassWithCustomDelegate(EqualityBuiltIn):
         pass
 
 
-class ChildWithCustomDelegate(ClassWithCustomDelegate):
-
-    def __init__(self):
-        super().__init__()
-
-
 class CustomNoneDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
         super().__init__(cls)
 
     def resolve(self, data):
-        return {}
+        return ClassWithCustomDelegate()
 
 
 class NestedList(EqualityBuiltIn):
@@ -115,3 +110,7 @@ class NestedDictList(EqualityBuiltIn):
 
     def __init__(self, d: Dict[str, Dict[str, NestedList]]):
         self.d = d
+
+
+class EnumClass(Enum):
+    VAL = 0
