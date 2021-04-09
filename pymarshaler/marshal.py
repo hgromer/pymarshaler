@@ -79,7 +79,10 @@ class _DictEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime.datetime):
             return o.isoformat()
-        return o.__dict__
+        try:
+            return o.__dict__
+        except AttributeError:
+            return repr(o)
 
 
 class Marshal:
