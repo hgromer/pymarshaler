@@ -22,9 +22,9 @@ class _RegisteredDelegates:
 
     def get_for(self, cls):
         try:
-            for val in self.registered_delegates:
-                if cls == val or issubclass(cls, val):
-                    return self.registered_delegates[val]
+            for delegate_cls, delegate in self.registered_delegates.items():
+                if cls == delegate_cls or issubclass(cls, delegate_cls):
+                    return delegate
             return None
         except TypeError:
             return None

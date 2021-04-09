@@ -1,7 +1,6 @@
 import json
 import unittest
 
-from pymarshaler import marshal
 from pymarshaler.errors import MissingFieldsError, UnknownFieldError
 from pymarshaler.marshal import Marshal
 from tests.test_classes import *
