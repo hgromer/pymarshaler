@@ -1,5 +1,6 @@
 import json
 import unittest
+from enum import Enum
 
 from pymarshaler.errors import MissingFieldsError, UnknownFieldError
 from pymarshaler.marshal import Marshal

@@ -2,6 +2,7 @@ import datetime
 import inspect
 import json
 import typing
+from enum import Enum
 from json import JSONEncoder
 
 import jsonpickle
@@ -79,6 +80,8 @@ class _DictEncoder(JSONEncoder):
     def default(self, o):
         if isinstance(o, datetime.datetime):
             return o.isoformat()
+        elif isinstance(o, Enum):
+            return o.name
         try:
             return o.__dict__
         except AttributeError:
@@ -113,7 +116,7 @@ class Marshal:
         >>> print(data)
         '{name: foo}'
         """
-        return json.dumps(obj, cls=_DictEncoder)
+        return json.dumps(obj, cls=_DictEncoder, indent=indent)
 
     def unmarshal_str(self, cls, data: str):
         """
