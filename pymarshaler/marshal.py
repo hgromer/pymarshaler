@@ -2,6 +2,7 @@ import datetime
 import inspect
 import json
 import typing
+from json import JSONEncoder
 
 import jsonpickle
 
@@ -74,6 +75,13 @@ class _ArgBuilderFactory:
         return self._default_arg_builder_delegates[name]
 
 
+class _DictEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return o.isoformat()
+        return o.__dict__
+
+
 class Marshal:
 
     def __init__(self, ignore_unknown_fields: bool = False, walk_unknown_fields: bool = False):
@@ -102,7 +110,7 @@ class Marshal:
         >>> print(data)
         '{name: foo}'
         """
-        return jsonpickle.encode(obj, unpicklable=False, indent=indent)
+        return json.dumps(obj, cls=_DictEncoder)
 
     def unmarshal_str(self, cls, data: str):
         """

@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setuptools.setup(
     name="pymarshaler",
-    version="0.2.3",
+    version="0.2.4",
     author="Hernan Romer",
     author_email="nanug33@gmail.com",
     description="Package to marshal and unmarshal python objects",

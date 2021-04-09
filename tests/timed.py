@@ -13,6 +13,6 @@ def timed(function):
     def wrapper(*args, **kwargs):
         start = timer()
         result = function(*args, **kwargs)
-        print("{} took {} ms".format(function.__name__, 1000 * (timer() - start)))
+        print("{} took {} ms".format(function.__name__, round(1000 * (timer() - start), 3)))
         return result
     return wrapper
