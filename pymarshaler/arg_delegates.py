@@ -111,10 +111,10 @@ class UserDefinedArgBuilderDelegate(FunctionalArgBuilderDelegate):
 
     def _resolve(self, cls, data: dict):
         args = {}
-        unsatisfied = inspect.signature(cls.__init__).parameters
+        unsatisfied = typing.get_type_hints(cls)
         for key, value in data.items():
             if key in unsatisfied:
-                param_type = unsatisfied[key].annotation
+                param_type = unsatisfied[key]
                 args[key] = self.func(param_type, value)
             elif not self.ignore_unknown_fields:
                 raise UnknownFieldError(f'Found unknown field ({key}: {value}). '

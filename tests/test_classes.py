@@ -1,73 +1,61 @@
+from __future__ import annotations
+
 import datetime
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict
 
 from pymarshaler.arg_delegates import ArgBuilderDelegate
 
 
-class EqualityBuiltIn:
+@dataclass
+class Inner:
 
-    def __eq__(self, other):
-        if type(self) != type(other):
-            return False
-        if len(self.__dict__) != len(other.__dict__):
-            return False
-        for key, value in self.__dict__.items():
-            if key not in other.__dict__:
-                return False
-            elif value != other.__dict__[key]:
-                return False
-        return True
+    name: str
+    value: int
 
 
-class Inner(EqualityBuiltIn):
+@dataclass
+class Outter:
 
-    def __init__(self, name: str, value: int):
-        self.name = name
-        self.value = value
-
-
-class Outter(EqualityBuiltIn):
-
-    def __init__(self, inner: Inner, inner_list: List[Inner]):
-        self.inner = inner
-        self.inner_list = inner_list
+    inner: Inner
+    inner_list: List[Inner]
 
 
-class MultiNestedOutter(EqualityBuiltIn):
+@dataclass
+class MultiNestedOutter:
 
-    def __init__(self, outter: Outter):
-        self.outter = outter
-
-
-class MultiNestedList(EqualityBuiltIn):
-
-    def __init__(self, outter_list: List[MultiNestedOutter]):
-        self.outter_list = outter_list
+    outter: Outter
 
 
-class ClassWithDate(EqualityBuiltIn):
+@dataclass
+class MultiNestedList:
 
-    def __init__(self, date: datetime.datetime):
-        self.date = date
-
-
-class ClassWithDefaults(EqualityBuiltIn):
-
-    def __init__(self, value: int = 10):
-        self.value = value
+    outter_list: List[MultiNestedOutter]
 
 
-class ClassWithDict(EqualityBuiltIn):
+@dataclass
+class ClassWithDate:
 
-    def __init__(self, d: Dict[str, Inner]):
-        self.d = d
+    date: datetime.datetime
 
 
-class ClassWithNestedDict(EqualityBuiltIn):
+@dataclass
+class ClassWithDefaults:
 
-    def __init__(self, d: Dict[str, ClassWithDict]):
-        self.d = d
+    value: int = 10
+
+
+@dataclass
+class ClassWithDict:
+
+    d: Dict[str, Inner]
+
+
+@dataclass
+class ClassWithNestedDict:
+
+    d: Dict[str, ClassWithDict]
 
 
 class ValidateError(Exception):
@@ -76,21 +64,20 @@ class ValidateError(Exception):
         super()
 
 
+@dataclass
 class ClassWithValidate:
-
-    def __init__(self):
-        pass
 
     def validate(self):
         raise ValidateError()
 
 
-class ClassWithCustomDelegate(EqualityBuiltIn):
+@dataclass
+class ClassWithCustomDelegate:
 
-    def __init__(self):
-        pass
+    pass
 
 
+@dataclass
 class CustomNoneDelegate(ArgBuilderDelegate):
 
     def __init__(self, cls):
@@ -100,16 +87,16 @@ class CustomNoneDelegate(ArgBuilderDelegate):
         return ClassWithCustomDelegate()
 
 
-class NestedList(EqualityBuiltIn):
+@dataclass
+class NestedList:
 
-    def __init__(self, multiple_inner_list: List[List[Inner]]):
-        self.multiple_inner_list = multiple_inner_list
+    multiple_inner_list: List[List[Inner]]
 
 
-class NestedDictList(EqualityBuiltIn):
+@dataclass
+class NestedDictList:
 
-    def __init__(self, d: Dict[str, Dict[str, NestedList]]):
-        self.d = d
+    d: Dict[str, Dict[str, NestedList]]
 
 
 class EnumClass(Enum):
