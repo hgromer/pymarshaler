@@ -101,9 +101,9 @@ class Marshal:
     @staticmethod
     def marshal(obj) -> bytes:
         """
-        Convert a class instance to a JSON formatted string
+        Convert a class instance to JSON formatted bytes
         :param obj: The object to convert
-        :return: String JSON representation of the class instance
+        :return: bytes JSON representation of the class instance
         Example:
         >>> class Test:
             >>> def __init__(self, name: str):
