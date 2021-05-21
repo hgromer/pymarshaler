@@ -117,6 +117,7 @@ Pymarshaler also supports default values, and will use any default values suppli
 from dataclasses import dataclass
 from pymarshaler.marshal import Marshal
 
+@dataclass
 class TestWithDefault:
     
     name: str = 'foo'
