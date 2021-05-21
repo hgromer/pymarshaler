@@ -9,11 +9,15 @@ Pymarshaler takes advantage of python's new [typing support](https://docs.python
 
 ### Declare a class with typing information 
 
-```python
-class Test:
+Note, we can use regular old classes as long as their init methods are annotated properly, but it's preferable to use dataclasses whenever possible
 
-    def __init__(self, name: str):
-        self.name = name
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Test:
+    
+    name: str
 ```
 
 That's it! We can now marshal, and more importantly, unmarshal this object to and from JSON.
@@ -38,11 +42,14 @@ We also use `marshal.unmarshal_str(cls, str)` if we want to unmarshal directly f
 This is a pretty trivial example, lets add in a nested class
 
 ```python
+from dataclasses import dataclass
+
+@dataclass
 class StoresTest:
+    
+    test: Test
 
-    def __int__(self, test: Test):
-        self.test = test
-
+    
 stores_test = StoresTest(Test('foo'))
 blob = marshal.marshal(stores_test)
 print(blob)
@@ -77,14 +84,16 @@ print(result.name)
 We can use pymarshaler to handle containers as well. Again we take advantage of python's robust typing system
 
 ```python
+from dataclasses import dataclass
 from pymarshaler.marshal import Marshal
 from typing import Set
 import json
 
+@dataclass
 class TestContainer:
+ 
+    container: Set[str]
     
-    def __int__(self, container: Set[str]):
-        self.container = container
 
 marshal = Marshal()
 container_instance = TestContainer({'foo', 'bar'})        
@@ -102,12 +111,13 @@ Pymarshaler can also handle containers that store user defined types. The `Set[s
 Pymarshaler also supports default values, and will use any default values supplied in the `__init__` if those values aren't present in the JSON data.
 
 ```python
+from dataclasses import dataclass
 from pymarshaler.marshal import Marshal
 
 class TestWithDefault:
+    
+    name: str = 'foo'
 
-    def __init__(self, name: str = 'foo'):
-        self.name = name
 
 marshal = Marshal()
 result = marshal.unmarshal(TestWithDefault, {})
@@ -119,12 +129,14 @@ Pymarshaler will raise an error if any non-default attributes aren't given
 Pymarshaler also supports a validate method on creation of the python object. This method will be called before being returned to the user.
 
 ```python
+from dataclasses import dataclass
 from pymarshaler.marshal import Marshal
 
-class TestWithValidate:
 
-    def __init__(self, name: str):
-        self.name = name
+@dataclass
+class TestWithValidate:
+    
+    name: str
 
     def validate(self):
         print(f'My name is {self.name}!')
@@ -140,14 +152,16 @@ This can be used to validate the python object right at construction, potentiall
 It's also possible to register your own custom unmarshaler for specific user defined classes.
 
 ```python
+from dataclasses import dataclass
+
 from pymarshaler.arg_delegates import ArgBuilderDelegate 
 from pymarshaler.marshal import Marshal
 
 
+@dataclass
 class ClassWithMessage:
     
-    def __init__(self, message: str):
-        self.message = message
+    message: str        
 
 
 class ClassWithCustomDelegate:

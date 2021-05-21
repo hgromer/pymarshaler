@@ -1,10 +1,10 @@
 import datetime
-import inspect
 import typing
 
 import dateutil.parser as parser
 
 from pymarshaler.errors import UnknownFieldError
+from pymarshaler.utils import get_init_params
 
 
 class ArgBuilderDelegate:
@@ -111,7 +111,7 @@ class UserDefinedArgBuilderDelegate(FunctionalArgBuilderDelegate):
 
     def _resolve(self, cls, data: dict):
         args = {}
-        unsatisfied = typing.get_type_hints(cls)
+        unsatisfied = get_init_params(cls)
         for key, value in data.items():
             if key in unsatisfied:
                 param_type = unsatisfied[key]

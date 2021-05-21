@@ -1,6 +1,8 @@
 import datetime
 import inspect
 
+import typing
+
 
 def is_user_defined(cls, ignore=None) -> bool:
     """
@@ -38,3 +40,12 @@ def is_builtin(cls) -> bool:
         return cls.__module__ == 'builtins'
     except AttributeError:
         return False
+
+
+def get_init_params(cls) -> dict:
+    params = typing.get_type_hints(cls)
+    if params and len(params) > 0:
+        return params
+    params = inspect.signature(cls.__init__).parameters
+    return {k: v.annotation for k, v in params.items()}
+

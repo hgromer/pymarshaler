@@ -9,6 +9,17 @@ from tests.timed import timed
 marshal = Marshal()
 
 
+class TestNotFuturized:
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+        return self.__dict__ == other.__dict__
+
+
 class TestMarshalling(unittest.TestCase):
 
     def setUp(self) -> None:
@@ -16,6 +27,12 @@ class TestMarshalling(unittest.TestCase):
 
     def tearDown(self) -> None:
         marshal = Marshal()
+
+    @timed
+    def test_not_futurized(self):
+        test = TestNotFuturized('test')
+        result = _marshall_and_unmarshall(TestNotFuturized, test)
+        self.assertEqual(test, result)
 
     @timed
     def test_simple_marshalling(self):
