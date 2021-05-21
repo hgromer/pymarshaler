@@ -1,11 +1,9 @@
 import datetime
 import inspect
-import json
 import typing
 from enum import Enum
-from json import JSONEncoder
 
-import jsonpickle
+import orjson
 
 from pymarshaler.arg_delegates import ArgBuilderDelegate, ListArgBuilderDelegate, \
     SetArgBuilderDelegate, TupleArgBuilderDelegate, DictArgBuilderDelegate, BuiltinArgBuilderDelegate, \
@@ -81,16 +79,11 @@ class _ArgBuilderFactory:
         return self._default_arg_builder_delegates[name]
 
 
-class _DictEncoder(JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime.datetime):
-            return o.isoformat()
-        elif isinstance(o, Enum):
-            return o.name
-        try:
-            return o.__dict__
-        except AttributeError:
-            return repr(o)
+def _default(o):
+    try:
+        return o.__dict__
+    except AttributeError:
+        return repr(o)
 
 
 class Marshal:
@@ -106,11 +99,10 @@ class Marshal:
         )
 
     @staticmethod
-    def marshal(obj, indent=2) -> str:
+    def marshal(obj) -> bytes:
         """
         Convert a class instance to a JSON formatted string
         :param obj: The object to convert
-        :param indent: How to format the JSON. Defaults to an indent of 2
         :return: String JSON representation of the class instance
         Example:
         >>> class Test:
@@ -121,7 +113,7 @@ class Marshal:
         >>> print(data)
         '{name: foo}'
         """
-        return json.dumps(obj, cls=_DictEncoder, indent=indent)
+        return orjson.dumps(obj, default=_default)
 
     def unmarshal_str(self, cls, data: str):
         """
@@ -143,7 +135,7 @@ class Marshal:
         >>> print(test_instance.name)
         'foo'
         """
-        return self.unmarshal(cls, json.loads(data))
+        return self.unmarshal(cls, orjson.loads(data))
 
     def unmarshal(self, cls, data: dict):
         """

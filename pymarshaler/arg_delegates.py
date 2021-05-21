@@ -28,9 +28,9 @@ class FunctionalArgBuilderDelegate(ArgBuilderDelegate):
 
 class EnumArgBuilderDelegate(ArgBuilderDelegate):
 
-    def resolve(self, data: str):
-        for k, v in self.cls.__members__.items():
-            if k == data.upper():
+    def resolve(self, data):
+        for v in self.cls.__members__.values():
+            if v.value == data:
                 return v
         raise UnknownFieldError(f'Invalid value {data} for enum {self.cls.__name__}')
 

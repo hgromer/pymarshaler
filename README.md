@@ -31,7 +31,7 @@ import json
 
 test_instance = Test('foo')
 blob = Marshal.marshal(test_instance)
-print(blob)
+print(blob.decode())
 >>> '{name: foo}'
 
 marshal = Marshal()
@@ -101,7 +101,7 @@ class TestContainer:
 marshal = Marshal()
 container_instance = TestContainer({'foo', 'bar'})        
 blob = marshal.marshal(container_instance)
-print(blob)
+print(blob.decode())
 >>> '{container: ["foo", "bar"]}'
 
 result = marshal.unmarshal(TestContainer,json.loads(blob))
@@ -190,5 +190,5 @@ print(result.message_obj)
 >>> 'Hello from the custom delegate!'
 ```
 
-The result from any delegate should be initialized resulting class instance
+The result from any delegate should be the initialized resulting class instance
 
