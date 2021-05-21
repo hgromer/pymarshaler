@@ -1,2 +1,4 @@
-jsonpickle
 python-dateutil
+pymarshaler
+setuptools
+orjson
