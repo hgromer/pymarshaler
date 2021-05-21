@@ -1,5 +1,8 @@
 # Pymarshaler - Marshal and Unmarshal Python Objects
 
+## Disclaimer
+This tool is in no way production ready
+
 ## About
 Pymarshaler allows you to marshal and unmarshal any python object directly to and from a JSON formatted string. 
 
