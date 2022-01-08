@@ -167,9 +167,19 @@ class TestMarshalling(unittest.TestCase):
 
     @timed
     def test_enums(self):
-        enum = EnumClass.VAL
+        enum = EnumClass.E
         result = _marshall_and_unmarshall(EnumClass, enum)
         self.assertEqual(result, enum)
+
+    def test_cached_enum(self):
+        marshal.cache_enum(EnumClass)
+
+        @timed
+        def timed_cached_enum():
+            enum = EnumClass.E
+            result = _marshall_and_unmarshall(EnumClass, enum)
+            self.assertEqual(result, enum)
+        timed_cached_enum()
 
 
 def _marshall_and_unmarshall(cls, obj):

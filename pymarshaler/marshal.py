@@ -7,7 +7,7 @@ import orjson
 
 from pymarshaler.arg_delegates import ArgBuilderDelegate, ListArgBuilderDelegate, \
     SetArgBuilderDelegate, TupleArgBuilderDelegate, DictArgBuilderDelegate, BuiltinArgBuilderDelegate, \
-    UserDefinedArgBuilderDelegate, DateTimeArgBuilderDelegate, EnumArgBuilderDelegate
+    UserDefinedArgBuilderDelegate, DateTimeArgBuilderDelegate, EnumArgBuilderDelegate, CachedEnumArgBuilderDelegate
 from pymarshaler.errors import MissingFieldsError, InvalidDelegateError, PymarshalError
 from pymarshaler.utils import is_builtin, is_user_defined
 
@@ -51,6 +51,9 @@ class _ArgBuilderFactory:
 
     def register(self, cls, delegate_cls):
         self._registered_delegates.register(cls, delegate_cls(cls))
+
+    def cache_enum(self, enum_cls):
+        self._registered_delegates.register(enum_cls, CachedEnumArgBuilderDelegate(enum_cls))
 
     def get_delegate(self, cls) -> ArgBuilderDelegate:
         is_class = inspect.isclass(cls)
@@ -165,6 +168,9 @@ class Marshal:
 
     def register_delegate(self, cls, delegate_cls):
         self._arg_builder_factory.register(cls, delegate_cls)
+
+    def cache_enum(self, enum_cls):
+        self._arg_builder_factory.cache_enum(enum_cls)
 
     def _unmarshal(self, cls, data: dict):
         init_params = inspect.signature(cls.__init__).parameters

@@ -12,6 +12,9 @@ class ArgBuilderDelegate:
     def __init__(self, cls):
         self.cls = cls
 
+    def name(self) -> str:
+        return self.cls.__name__
+
     def resolve(self, data):
         raise NotImplementedError(f'{ArgBuilderDelegate.__name__} has no implementation of resolve')
 
@@ -24,6 +27,21 @@ class FunctionalArgBuilderDelegate(ArgBuilderDelegate):
 
     def resolve(self, data):
         raise NotImplementedError(f'{FunctionalArgBuilderDelegate.__name__} has no implementation of resolve')
+
+
+class CachedEnumArgBuilderDelegate(ArgBuilderDelegate):
+
+    def __init__(self, cls):
+        super().__init__(cls)
+        members = cls.__members__.values()
+        if len(members) <= 20:
+            print(f'WARNING: ENUM "{cls.__name__}" HAS VERY FEW MEMBERS, IT MAY BE MORE EFFICIENT TO AVOID CACHING')
+        self._table = {v.value: v for v in members}
+
+    def resolve(self, data):
+        if data not in self._table:
+            raise UnknownFieldError(f'Invalid value {data} for enum {self.cls.__name__}')
+        return self._table[data]
 
 
 class EnumArgBuilderDelegate(ArgBuilderDelegate):
