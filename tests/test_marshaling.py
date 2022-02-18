@@ -134,7 +134,7 @@ class TestMarshalling(unittest.TestCase):
 
     @timed
     def test_custom_delegate(self):
-        marshal.register_delegate(ClassWithCustomDelegate, CustomNoneDelegate)
+        marshal.register_delegate(ClassWithCustomDelegate, lambda x: ClassWithCustomDelegate())
         result = marshal.unmarshal(ClassWithCustomDelegate, {})
         self.assertEqual(result, ClassWithCustomDelegate())
 

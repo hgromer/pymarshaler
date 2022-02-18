@@ -153,19 +153,17 @@ result = marshal.unmarshal(TestWithValidate, {'name': 'foo'})
 
 This can be used to validate the python object right at construction, potentially raising an error if any of the fields have invalid values
 
-It's also possible to register your own custom unmarshaler for specific user defined classes.
+It's also possible to register your own custom unmarshaler for specific user defined classes by passing in a function pointer that will "resolve" the raw data
 
 ```python
 from dataclasses import dataclass
 
-from pymarshaler.arg_delegates import ArgBuilderDelegate 
 from pymarshaler.marshal import Marshal
 
 
 @dataclass
 class ClassWithMessage:
-    
-    message: str        
+    message: str
 
 
 class ClassWithCustomDelegate:
@@ -174,17 +172,12 @@ class ClassWithCustomDelegate:
         self.message_obj = message_obj
 
 
-class CustomDelegate(ArgBuilderDelegate):
-
-    def __init__(self, cls):
-        super().__init__(cls)
-
-    def resolve(self, data):
-        return ClassWithCustomDelegate(ClassWithMessage(data['message']))
+def custom_delegate(data):
+    return ClassWithCustomDelegate(ClassWithMessage(data['message']))
 
 
 marshal = Marshal()
-marshal.register_delegate(ClassWithCustomDelegate, CustomDelegate)
+marshal.register_delegate(ClassWithCustomDelegate, custom_delegate)
 result = marshal.unmarshal(ClassWithCustomDelegate, {'message': 'Hello from the custom delegate!'})
 print(result.message_obj)
 >>> 'Hello from the custom delegate!'

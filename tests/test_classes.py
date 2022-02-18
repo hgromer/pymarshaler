@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import List, Dict
 
-from pymarshaler.arg_delegates import ArgBuilderDelegate
-
 
 @dataclass
 class Inner:
@@ -75,16 +73,6 @@ class ClassWithValidate:
 class ClassWithCustomDelegate:
 
     pass
-
-
-@dataclass
-class CustomNoneDelegate(ArgBuilderDelegate):
-
-    def __init__(self, cls):
-        super().__init__(cls)
-
-    def resolve(self, data):
-        return ClassWithCustomDelegate()
 
 
 @dataclass
