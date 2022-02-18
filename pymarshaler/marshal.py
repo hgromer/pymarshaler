@@ -5,9 +5,8 @@ from enum import Enum
 
 import orjson
 
-from pymarshaler.arg_delegates import ArgBuilderDelegate, ListArgBuilderDelegate, \
-    SetArgBuilderDelegate, TupleArgBuilderDelegate, DictArgBuilderDelegate, BuiltinArgBuilderDelegate, \
-    UserDefinedArgBuilderDelegate, DateTimeArgBuilderDelegate, EnumArgBuilderDelegate
+from pymarshaler.arg_delegates import enum_delegate, \
+    user_defined_delegate, datetime_delegate, builtin_delegate, list_delegate, tuple_delegate, dict_delegate
 from pymarshaler.errors import MissingFieldsError, InvalidDelegateError, PymarshalError
 from pymarshaler.utils import is_builtin, is_user_defined
 
@@ -17,7 +16,7 @@ class _RegisteredDelegates:
     def __init__(self):
         self.registered_delegates = {}
 
-    def register(self, cls, delegate: ArgBuilderDelegate):
+    def register(self, cls, delegate):
         self.registered_delegates[cls] = delegate
 
     def get_for(self, cls):
@@ -30,46 +29,48 @@ class _RegisteredDelegates:
             return None
 
 
-class _ArgBuilderFactory:
+class _Resolver:
 
-    def __init__(self, func, ignore_unknown_fields: bool, walk_unknown_fields: bool):
+    def __init__(self, func, ignore_unknown_fields: bool, walk_unknown_fields: bool, set_delegate=None):
+        self._func = func
+        self.ignore_unknown_fields = ignore_unknown_fields
+        self.walk_unknown_fields = walk_unknown_fields
         self._registered_delegates = _RegisteredDelegates()
         self._default_arg_builder_delegates = {
-            typing.List._name: lambda x: ListArgBuilderDelegate(x, func),
-            typing.Set._name: lambda x: SetArgBuilderDelegate(x, func),
-            typing.Tuple._name: lambda x: TupleArgBuilderDelegate(x, func),
-            typing.Dict._name: lambda x: DictArgBuilderDelegate(x, func),
-            "PythonBuiltin": lambda x: BuiltinArgBuilderDelegate(x),
-            "UserDefined": lambda x: UserDefinedArgBuilderDelegate(
-                x,
-                func,
-                ignore_unknown_fields,
-                walk_unknown_fields
-            ),
-            "DateTime": lambda: DateTimeArgBuilderDelegate()
+            typing.List._name: list_delegate,
+            typing.Set._name: set_delegate,
+            typing.Tuple._name: tuple_delegate,
+            typing.Dict._name: dict_delegate,
+            "PythonBuiltin": builtin_delegate,
+            "UserDefined": user_defined_delegate,
+            "DateTime": datetime_delegate
         }
 
-    def register(self, cls, delegate_cls):
-        self._registered_delegates.register(cls, delegate_cls(cls))
+    def register(self, cls, func):
+        self._registered_delegates.register(cls, func)
 
-    def get_delegate(self, cls) -> ArgBuilderDelegate:
+    def resolve(self, cls, data) -> typing.Any:
         is_class = inspect.isclass(cls)
 
         if not is_class:
             if '_name' in cls.__dict__:
-                return self._safe_get(cls._name)(cls)
+                return self._safe_get(cls._name)(cls, data, self._func)
         else:
-            cls_maybe = self._registered_delegates.get_for(cls)
-            if cls_maybe:
-                return cls_maybe
+            delegate_maybe = self._registered_delegates.get_for(cls)
+            if delegate_maybe:
+                return delegate_maybe(data)
             elif issubclass(cls, Enum):
-                return EnumArgBuilderDelegate(cls)
+                return enum_delegate(cls, data, None)
             elif is_user_defined(cls):
-                return self._default_arg_builder_delegates['UserDefined'](cls)
+                return user_defined_delegate(cls,
+                                             data,
+                                             self._func,
+                                             self.ignore_unknown_fields,
+                                             self.walk_unknown_fields)
             elif issubclass(cls, datetime.datetime):
-                return self._default_arg_builder_delegates['DateTime']()
+                return datetime_delegate(cls, data, None)
             elif is_builtin(cls):
-                return self._default_arg_builder_delegates['PythonBuiltin'](cls)
+                return builtin_delegate(cls, data, None)
 
         raise InvalidDelegateError(f'No delegate for class {cls}')
 
@@ -92,7 +93,7 @@ class Marshal:
         if walk_unknown_fields and ignore_unknown_fields is False:
             raise PymarshalError('If walk_unknown_fields is True, ignore_unknown_fields must also be True')
 
-        self._arg_builder_factory = _ArgBuilderFactory(
+        self._arg_builder_factory = _Resolver(
             self._apply_typing,
             ignore_unknown_fields,
             walk_unknown_fields
@@ -168,7 +169,7 @@ class Marshal:
 
     def _unmarshal(self, cls, data: dict):
         init_params = inspect.signature(cls.__init__).parameters
-        args = self._arg_builder_factory.get_delegate(cls).resolve(data)
+        args = self._arg_builder_factory.resolve(cls, data)
         if is_user_defined(type(args)):
             result = args
         else:
@@ -183,8 +184,7 @@ class Marshal:
         return result
 
     def _apply_typing(self, param_type, value: typing.Any) -> typing.Any:
-        delegate = self._arg_builder_factory.get_delegate(param_type)
-        result = delegate.resolve(value)
+        result = self._arg_builder_factory.resolve(param_type, value)
         if is_user_defined(param_type):
             return param_type(**result)
         return result
