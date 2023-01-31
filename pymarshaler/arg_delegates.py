@@ -16,7 +16,7 @@ def list_delegate(cls, data, func):
     return [func(inner_type, x) for x in data]
 
 
-def set_builder_delegate(cls, data, func):
+def set_delegate(cls, data, func):
     inner_type = cls.__args__[0]
     return {func(inner_type, x) for x in data}
 

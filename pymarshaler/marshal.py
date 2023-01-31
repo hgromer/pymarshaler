@@ -6,7 +6,8 @@ from enum import Enum
 import orjson
 
 from pymarshaler.arg_delegates import enum_delegate, \
-    user_defined_delegate, datetime_delegate, builtin_delegate, list_delegate, tuple_delegate, dict_delegate
+    user_defined_delegate, datetime_delegate, builtin_delegate, list_delegate, tuple_delegate, dict_delegate, \
+    set_delegate
 from pymarshaler.errors import MissingFieldsError, InvalidDelegateError, PymarshalError
 from pymarshaler.utils import is_builtin, is_user_defined
 
@@ -31,7 +32,7 @@ class _RegisteredDelegates:
 
 class _Resolver:
 
-    def __init__(self, func, ignore_unknown_fields: bool, walk_unknown_fields: bool, set_delegate=None):
+    def __init__(self, func, ignore_unknown_fields: bool, walk_unknown_fields: bool):
         self._func = func
         self.ignore_unknown_fields = ignore_unknown_fields
         self.walk_unknown_fields = walk_unknown_fields
@@ -81,6 +82,9 @@ class _Resolver:
 
 
 def _default(o):
+    if isinstance(o, set):
+        return list(o)
+
     try:
         return o.__dict__
     except AttributeError:

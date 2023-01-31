@@ -29,6 +29,14 @@ class TestMarshalling(unittest.TestCase):
         marshal = Marshal()
 
     @timed
+    def test_set(self):
+        set_outer = SetOuter(
+            {Inner(f'Inner{i}', i) for i in range(10)}
+        )
+        result = _marshall_and_unmarshall(SetOuter, set_outer)
+        self.assertEqual(set_outer, result)
+
+    @timed
     def test_not_futurized(self):
         test = TestNotFuturized('test')
         result = _marshall_and_unmarshall(TestNotFuturized, test)
