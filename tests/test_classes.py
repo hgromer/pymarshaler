@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Set
 
 
 @dataclass
@@ -11,6 +11,14 @@ class Inner:
 
     name: str
     value: int
+
+    def __hash__(self):
+        return hash(self.name) + hash(self.value)
+
+
+@dataclass
+class SetOuter:
+    inner_set: Set[Inner]
 
 
 @dataclass
