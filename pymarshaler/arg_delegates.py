@@ -23,7 +23,7 @@ def set_delegate(cls, data, func):
 
 def tuple_delegate(cls, data, func):
     inner_type = cls.__args__[0]
-    return (func(inner_type, x) for x in data)
+    return func(inner_type, data[0]), func(inner_type, data[1])
 
 
 def dict_delegate(cls, data, func):

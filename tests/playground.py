@@ -8,9 +8,9 @@ import pymarshaler
 
 @dataclass
 class MoreInner:
-    ids: typing.Set[int]
+    ids: typing.List[typing.Tuple[int]]
 
-    def __init__(self, ids: typing.Set[int]):
+    def __init__(self, ids: typing.List[typing.Tuple[int]]):
         self.ids = ids
 
 
@@ -33,7 +33,7 @@ class Test:
 if __name__ == '__main__':
     marshal = pymarshaler.Marshal(True, True)
 
-    ids = {i for i in range(100)}
+    ids = [(i, i) for i in range(100)]
     test = Test(InnerTest(MoreInner(ids)))
 
     string = marshal.marshal(test)

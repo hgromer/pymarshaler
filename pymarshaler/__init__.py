@@ -1,4 +1,4 @@
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 __all__ = ['Marshal', 'utils', 'arg_delegates', 'errors']
 
 from pymarshaler import arg_delegates
